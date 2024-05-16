@@ -6,21 +6,49 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "npx @biomejs/biome lint ./src",
+    "lint:fix": "npx @biomejs/biome check --apply ./src",
+    "migrate": "dotenv -e .env -- ts-node ./tools/migrator/index.ts",
+    "migrate-down": "dotenv -e .env -- ts-node ./tools/migrator/index.ts -- down",
+    "migrate-down-all": "dotenv -e .env -- ts-node ./tools/migrator/index.ts -- down-all",
+    "update-courses": "dotenv -e .env -- ts-node ./tools/course-updator/index.ts"
   },
   "dependencies": {
+    "@biomejs/biome": "^1.7.3",
+    "@radix-ui/react-checkbox": "^1.0.4",
+    "@radix-ui/react-dropdown-menu": "^2.0.6",
+    "@radix-ui/react-progress": "^1.0.3",
+    "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-toast": "^1.1.5",
+    "@tanstack/react-query": "^5.36.0",
+    "@types/pg": "^8.11.6",
+    "@types/react-latex": "^2.0.3",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "commander": "^12.0.0",
+    "dotenv": "^16.4.5",
+    "dotenv-cli": "^7.4.2",
+    "kysely": "^0.27.3",
+    "lucide-react": "^0.378.0",
+    "next": "14.2.3",
+    "next-auth": "^4.24.7",
+    "pg": "^8.11.5",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.2.3"
+    "react-latex": "^2.0.0",
+    "tailwind-merge": "^2.3.0",
+    "tailwindcss-animate": "^1.0.7",
+    "ts-node": "^10.9.2",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.3",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.3"
+    "typescript": "^5"
   }
 }

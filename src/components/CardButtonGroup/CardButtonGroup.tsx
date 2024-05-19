@@ -24,7 +24,7 @@ export const CardButtonGroup = <T,>({
   )
 
   return (
-    <div className="flex flex-wrap gap-6">
+    <div className="grid auto-cols-fr md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
       {cards.map((card, index) => (
         <button
           type="button"
@@ -34,11 +34,11 @@ export const CardButtonGroup = <T,>({
         >
           <Card
             className={cn({
-              "bg-primary text-primary-foreground": card.value === value,
+              "border bg-gray-50 border-primary": card.value === value,
             })}
           >
-            <CardHeader>
-              <CardTitle>{card.label}</CardTitle>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-lg sm:text-xl">{card.label}</CardTitle>
               {card.description && (
                 <CardDescription>{card.description}</CardDescription>
               )}

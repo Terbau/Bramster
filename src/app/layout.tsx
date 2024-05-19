@@ -23,23 +23,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={cn(
-          "min-h-screen bg-background font-sans antialiased",
-          fontSans.variable
-        )}
-      >
-        <NextAuthProvider>
-          <QueryClientProvider client={queryClient}>
+      <NextAuthProvider>
+        <QueryClientProvider client={queryClient}>
+          <body
+            className={cn(
+              "min-h-screen bg-background font-sans antialiased flex flex-col w-full",
+              fontSans.variable
+            )}
+          >
             <Navbar />
-            <main className="max-w-screen-lg mx-auto min-h-screen py-8 px-6">
+            <main className="max-w-screen-lg w-full mx-auto py-8 px-6 mb-10">
               {children}
             </main>
             <Toaster />
             <Footer />
-          </QueryClientProvider>
-        </NextAuthProvider>
-      </body>
+          </body>
+        </QueryClientProvider>
+      </NextAuthProvider>
     </html>
   )
 }

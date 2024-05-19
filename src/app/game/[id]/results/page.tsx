@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { asReadbleTime } from "@/lib/utils"
+import { asReadbleTime, capitalized } from "@/lib/utils"
 import type { ExtendedGameSessionWithResults } from "@/types/game"
 import { useQuery } from "@tanstack/react-query"
 import { CircleCheck, CircleX } from "lucide-react"
@@ -42,9 +42,7 @@ export default function GameResultsPage({
     data.guesses.map((guess) => [guess.questionId, guess])
   )
 
-  const fields = [
-    { label: "Started at", value: asReadbleTime(data.createdAt) },
-  ]
+  const fields = [{ label: "Started at", value: asReadbleTime(data.createdAt) }]
 
   if (data.finishedAt) {
     fields.push({ label: "Finished at", value: asReadbleTime(data.finishedAt) })
@@ -60,13 +58,13 @@ export default function GameResultsPage({
             href: `/courses/${data.course.id}`,
           },
           {
-            label: data.origin,
+            label: capitalized(data.origin),
             href: `/courses/${data.course.id}/${data.origin}`,
           },
           { label: "Results", href: `/game/${params.id}/results` },
         ]}
       />
-      <div className="flex flex-row justify-between">
+      <div className="flex flex-col-reverse gap-y-4 sm:flex-row justify-between">
         <div className="space-y-2">
           <h1 className="text-4xl font-bold">Quiz results</h1>
           <p className="text-gray-800 ml-1">
@@ -74,7 +72,7 @@ export default function GameResultsPage({
           </p>
         </div>
 
-        <div className="border border-gray-200 rounded-sm flex flex-col p-3 w-fit">
+        <div className="border border-gray-200 rounded-sm flex flex-col p-3 sm:w-fit">
           {fields.map((field) => (
             <div key={field.label} className="flex flex-row gap-x-2">
               <span className="font-semibold">{field.label}:</span>
@@ -84,9 +82,9 @@ export default function GameResultsPage({
         </div>
       </div>
 
-      <Table className="mt-8">
+      <Table className="mt-2 sm:mt-8">
         <TableHeader>
-          <TableRow>
+          <TableRow className="text-xs sm:text-sm">
             <TableHead>Question</TableHead>
             <TableHead>Your guess</TableHead>
             <TableHead>Correct option</TableHead>
@@ -112,7 +110,7 @@ export default function GameResultsPage({
             }
 
             return (
-              <TableRow key={question.id} className="h-full">
+              <TableRow key={question.id} className="h-full text-xs sm:text-sm">
                 <TableCell>
                   <Latex>{question.question}</Latex>
                 </TableCell>

@@ -1,15 +1,19 @@
-import type { QuestionOption, QuestionWithOptions } from "@/types/question"
+import type {
+  Question,
+  QuestionOption,
+  WeightedQuestionWithOptions,
+} from "@/types/question"
 import { db } from "../db"
 import { sql } from "kysely"
+import type { User } from "../db/types/user"
+import type { Course } from "@/types/course"
 
 export const getQuestionsWithOptions = async (
-  courseId: string,
-  origin: string,
+  courseId: Course["id"],
+  origin: Question["origin"],
   limit = -1,
   isRandomOrder = false
-): Promise<QuestionWithOptions[]> => {
-  const lowerOrigin = origin.toLowerCase()
-
+): Promise<WeightedQuestionWithOptions[]> => {
   const questions = await db
     .selectFrom("question")
     .leftJoin("questionOption", "question.id", "questionOption.questionId")
@@ -20,12 +24,53 @@ export const getQuestionsWithOptions = async (
       >`COALESCE(json_agg(question_option) FILTER (WHERE ${ref(
         "questionOption.id"
       )} IS NOT NULL), '[]')`.as("options"),
+      sql<number>`0`.as("weight"),
     ])
     .where("courseId", "=", courseId)
-    .$if(lowerOrigin !== "all", (qb) => qb.where("origin", "=", lowerOrigin))
+    .$if(origin !== "all", (qb) => qb.where("origin", "=", origin))
     .groupBy("question.id")
     .$if(isRandomOrder, (qb) => qb.orderBy(sql`RANDOM()`))
     .$if(limit > 0, (qb) => qb.limit(limit))
+    .execute()
+
+  return questions
+}
+
+export const getQuestionsWithOptionsBasedOnHistory = async (
+  courseId: Course["id"],
+  origin: Question["origin"],
+  userId: User["id"],
+  limit = -1
+): Promise<WeightedQuestionWithOptions[]> => {
+  const questions = await db
+    .selectFrom("question")
+    .selectAll("question")
+    .leftJoin("questionOption", "question.id", "questionOption.questionId")
+    .select(({ selectFrom }) =>
+      selectFrom("guess")
+        .innerJoin("gameSession", "guess.gameSessionId", "gameSession.id")
+        .innerJoin("questionOption", "guess.optionId", "questionOption.id")
+        .whereRef("guess.questionId", "=", "question.id")
+        .where("gameSession.userId", "=", userId)
+        .select(() => [
+          sql<number>`COALESCE(SUM(CASE WHEN question_option.correct THEN 1 ELSE -1 END), 0)`.as(
+            "weight"
+          ),
+        ])
+        .as("weight")
+    )
+    .select(({ ref }) =>
+      sql<
+        QuestionOption[]
+      >`COALESCE(json_agg(question_option) FILTER (WHERE ${ref(
+        "questionOption.id"
+      )} IS NOT NULL), '[]')`.as("options")
+    )
+    .where("question.courseId", "=", courseId)
+    .groupBy("question.id")
+    .$if(origin !== "all", (qb) => qb.where("question.origin", "=", origin))
+    .$if(limit > 0, (qb) => qb.limit(limit))
+    .orderBy("weight", "asc")
     .execute()
 
   return questions

@@ -32,6 +32,10 @@ export const QuizGame: FC<QuizGameProps> = ({
 }) => {
   const { toast } = useToast()
   const router = useRouter()
+  const [lastGuessSyncSuccess, setLastGuessSyncSuccess] = useState<
+    boolean | null
+  >(null)
+  let showLastGuessSyncSuccess: NodeJS.Timeout | null = null
 
   // Find the question with the most options
   const maxOptions = questions.reduce((max, question) => {
@@ -92,6 +96,7 @@ export const QuizGame: FC<QuizGameProps> = ({
       return newQuestionStates
     })
 
+    handleSetLastGuessSyncSuccess(null)
     addGuessMutate({
       questionId: currentQuestion.id,
       optionId: currentQuestion.options[index].id,
@@ -145,6 +150,20 @@ export const QuizGame: FC<QuizGameProps> = ({
     )
   }
 
+  const handleSetLastGuessSyncSuccess = (value: boolean | null) => {
+    if (showLastGuessSyncSuccess) {
+      clearTimeout(showLastGuessSyncSuccess)
+    }
+
+    if (value !== null) {
+      showLastGuessSyncSuccess = setTimeout(() => {
+        setLastGuessSyncSuccess(null)
+      }, 2000)
+    }
+
+    setLastGuessSyncSuccess(value)
+  }
+
   useEffect(() => {
     if (currentHoveredOptionIndex !== -1) {
       const index = currentHoveredOptionIndex
@@ -160,24 +179,24 @@ export const QuizGame: FC<QuizGameProps> = ({
     return () => document.removeEventListener("keydown", handleKeyDown)
   }, [handleKeyDown])
 
-  const { mutate: addGuessMutate } = useMutation({
-    mutationKey: ["gameGuessAdd", gameSession.id, currentQuestion.id],
-    mutationFn: (guess: GuessCreate) =>
-      fetch(`/api/game/${gameSession.id}/guess`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(guess),
-      }),
-    onSuccess: () => {
-      console.log("Guess added!")
-      toast({
-        title: "Guess registered",
-        description: "Your guess was successfully registered!",
-      })
-    },
-  })
+  const { mutate: addGuessMutate, isPending: guessMutateIsPending } =
+    useMutation({
+      mutationKey: ["gameGuessAdd", gameSession.id, currentQuestion.id],
+      mutationFn: (guess: GuessCreate) =>
+        fetch(`/api/game/${gameSession.id}/guess`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(guess),
+        }),
+      onSuccess: () => {
+        handleSetLastGuessSyncSuccess(true)
+      },
+      onError: () => {
+        handleSetLastGuessSyncSuccess(false)
+      },
+    })
 
   const { mutate: finishMutate, isPending: finishIsLoading } = useMutation({
     mutationKey: ["gameFinish", gameSession.id],
@@ -201,9 +220,20 @@ export const QuizGame: FC<QuizGameProps> = ({
         postNumber={amountQuestions}
       />
 
-      <h3 className="mt-8 text-2xl font-semibold">
-        <Latex>{getLocale(currentQuestion.question, "nb_NO")}</Latex>
-      </h3>
+      <div className="mt-8 flex flex-row items-start justify-between">
+        <h3 className="text-2xl font-semibold">
+          <Latex>{getLocale(currentQuestion.question, "nb_NO")}</Latex>
+        </h3>
+        <div className="h-full w-8">
+          <Loader2 className={cn("h-5 w-5 animate-spin hidden mt-2 mr-2 transition-all ease-in-out", { block: guessMutateIsPending })} />
+          {lastGuessSyncSuccess !== null &&
+            (lastGuessSyncSuccess ? (
+              <CircleCheck className="h-5 w-5 mt-2 mr-2 transition-all ease-in-out" />
+            ) : (
+              <CircleX className="text-red-500 h-5 w-5 mt-2 mr-2 transition-all ease-in-out" />
+            ))}
+        </div>
+      </div>
       <div className="mt-4 flex flex-col gap-y-3">
         {currentQuestion.options.map((option, index) => (
           <button
@@ -220,7 +250,9 @@ export const QuizGame: FC<QuizGameProps> = ({
               }
             )}
           >
-            <Latex>{getLocale(option.option, "nb_NO")}</Latex>
+            <span className="text-left">
+              <Latex>{getLocale(option.option, "nb_NO")}</Latex>
+            </span>
             {answeredIndex === index &&
               (option.correct ? (
                 <CircleCheck size={26} className="text-green-500" />
@@ -230,17 +262,20 @@ export const QuizGame: FC<QuizGameProps> = ({
           </button>
         ))}
       </div>
-      <div className="mt-4 flex flex-row gap-x-2 justify-between">
-        <div className="flex flex-row gap-x-2">
-          <Button onClick={() => navigateQuiz(false)} className="w-28">
+      <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-between">
+        <div className="grid grid-cols-2 sm:flex sm:flex-row gap-x-2 w-full">
+          <Button
+            onClick={() => navigateQuiz(false)}
+            className="w-full sm:w-28"
+          >
             Previous
           </Button>
-          <Button onClick={() => navigateQuiz(true)} className="w-28">
+          <Button onClick={() => navigateQuiz(true)} className="w-full sm:w-28">
             Next
           </Button>
         </div>
         {amountQuestionsAnswered === amountQuestions && (
-          <Button onClick={() => finishMutate()} className="w-32">
+          <Button onClick={() => finishMutate()} className="w-full sm:w-32">
             {finishIsLoading && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}

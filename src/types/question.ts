@@ -43,3 +43,11 @@ export const QuestionWithOptions = Question.extend({
 })
 
 export type QuestionWithOptions = z.infer<typeof QuestionWithOptions>
+
+export const WeightedQuestionWithOptions = QuestionWithOptions.extend({
+  weight: z.number().nullable(),
+})
+
+export type WeightedQuestionWithOptions = z.infer<
+  typeof WeightedQuestionWithOptions
+>

@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { capitalized } from "@/lib/utils"
 import type { CourseOrigin } from "@/types/course"
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
@@ -33,8 +34,9 @@ export default function CoursePage({ params }: { params: { id: string } }) {
           return a.origin.localeCompare(b.origin)
         })
 
-        data.push({
-          origin: "All",
+        // insert at the beginning the total of all questions
+        data.splice(0, 0, {
+          origin: "all",
           totalQuestions: data.reduce(
             (acc, courseOrigin) => acc + courseOrigin.totalQuestions,
             0
@@ -58,7 +60,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
       {isLoading ? (
         <Spinner />
       ) : (
-        <div className="grid grid-cols-4 auto-rows-fr gap-8">
+        <div className="grid auto-cols-fr md:grid-cols-4 auto-rows-max md:auto-rows-fr gap-8">
           {courseOrigins?.map((courseOrigin) => (
             <Link
               key={courseOrigin.origin}
@@ -66,7 +68,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
             >
               <Card className="cursor-pointer h-full hover:bg-gray-50 flex flex-col justify-between">
                 <CardHeader>
-                  <CardTitle>{courseOrigin.origin}</CardTitle>
+                  <CardTitle>{capitalized(courseOrigin.origin)}</CardTitle>
                   <CardDescription>
                     {courseOrigin.totalQuestions} questions
                   </CardDescription>

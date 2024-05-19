@@ -1,14 +1,19 @@
 import { authOptions } from "@/lib/auth"
 import { createGameSession } from "@/lib/functions/game"
-import { getQuestionsWithOptions } from "@/lib/functions/question"
+import {
+  getQuestionsWithOptions,
+  getQuestionsWithOptionsBasedOnHistory,
+} from "@/lib/functions/question"
 import { getServerSession } from "next-auth"
 import { NextResponse, type NextRequest } from "next/server"
 import type { CourseParams } from "../route"
+import type { GameSession } from "@/types/game"
+import type { QuestionWithOptions } from "@/types/question"
 
 interface PostRequestData {
   origin: string
   amountQuestions?: number
-  random?: boolean
+  order?: string
 }
 
 export async function POST(request: NextRequest, { params }: CourseParams) {
@@ -22,16 +27,30 @@ export async function POST(request: NextRequest, { params }: CourseParams) {
   const body: PostRequestData = await request.json()
   const origin = body.origin
   const amountQuestions = body.amountQuestions ?? -1
-  const randomOrder = body.random ?? false
+  const order = body.order?.toLowerCase() ?? "random"
 
   if (!origin) {
     return NextResponse.json({ message: "Origin is required" }, { status: 400 })
   }
 
-  const [gameSession, questionsWithOptions] = await Promise.all([
+  const funcs: [Promise<GameSession>, Promise<QuestionWithOptions[]>] = [
     createGameSession({ origin, userId: session.user.id, amountQuestions }),
-    getQuestionsWithOptions(courseId, origin, amountQuestions, randomOrder),
-  ])
+    order === "worst"
+      ? getQuestionsWithOptionsBasedOnHistory(
+          courseId,
+          origin,
+          session.user.id,
+          amountQuestions
+        )
+      : getQuestionsWithOptions(
+          courseId,
+          origin,
+          amountQuestions,
+          order === "random"
+        ),
+  ]
+
+  const [gameSession, questionsWithOptions] = await Promise.all(funcs)
 
   return NextResponse.json({
     gameSession,

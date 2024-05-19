@@ -3,6 +3,7 @@ import { Breadcrumb } from "@/components/Breadcrumb"
 import { CardButtonGroup } from "@/components/CardButtonGroup"
 import { QuizGame } from "@/components/QuizGame/QuizGame"
 import { Button } from "@/components/ui/button"
+import { capitalized } from "@/lib/utils"
 import type { GameSession } from "@/types/game"
 import type { QuestionWithOptions } from "@/types/question"
 import { useMutation } from "@tanstack/react-query"
@@ -32,11 +33,15 @@ const limitOptions = [
 const orderOptions = [
   {
     label: "Random order",
-    value: false,
+    value: "random",
   },
   {
     label: "Original order",
-    value: true,
+    value: "original",
+  },
+  {
+    label: "Your worst questions",
+    value: "worst",
   },
 ]
 
@@ -47,9 +52,9 @@ export default function QuizPage({
   const origin = decodeURIComponent(params.origin)
   const { data: session } = useSession()
 
-  const [settings, setSettings] = useState<{ limit: number; random: boolean }>({
+  const [settings, setSettings] = useState<{ limit: number; order: string }>({
     limit: limitOptions[0].value,
-    random: false,
+    order: orderOptions[0].value,
   })
 
   const { data, mutate, isPending } = useMutation<{
@@ -66,18 +71,10 @@ export default function QuizPage({
         body: JSON.stringify({
           origin,
           amountQuestions: settings.limit,
-          random: settings.random,
+          order: settings.order,
         }),
       }).then((res) => res.json()),
   })
-  // const { data, isLoading, refetch } = useQuery<QuestionWithOptions[]>({
-  //   queryKey: ["questions", courseId, origin],
-  //   queryFn: () =>
-  //     fetch(
-  //       `/api/courses/${courseId}/questions?origin=${origin}&limit=${settings.limit}&random=${settings.random}`
-  //     ).then((res) => res.json()),
-  //   enabled: false,
-  // })
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -85,17 +82,17 @@ export default function QuizPage({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-y-4">
       <Breadcrumb
         links={[
           { label: "Courses", href: "/courses" },
           { label: courseId.toUpperCase(), href: `/courses/${courseId}` },
-          { label: origin, href: `/courses/${courseId}/${origin}` },
+          { label: capitalized(origin), href: `/courses/${courseId}/${origin}` },
         ]}
       />
 
       <h1 className="text-4xl font-bold">
-        {courseId.toUpperCase()} - {origin}
+        {courseId.toUpperCase()} - {capitalized(origin)}
       </h1>
 
       {!session && (
@@ -106,11 +103,9 @@ export default function QuizPage({
       )}
 
       {session && !data && (
-        <form onSubmit={handleSubmit} className="space-y-10">
+        <form onSubmit={handleSubmit} className="space-y-10 mt-4">
           <div className="space-y-4">
-            <h2 className="text-2xl font-semibold">
-              How many questions should the quiz include?
-            </h2>
+            <h2 className="text-2xl font-semibold">Questions</h2>
             <CardButtonGroup
               cards={limitOptions}
               value={settings.limit}
@@ -123,22 +118,20 @@ export default function QuizPage({
             />
           </div>
           <div className="space-y-4">
-            <h2 className="text-2xl font-semibold">
-              Should the questions come in a random order?
-            </h2>
+            <h2 className="text-2xl font-semibold">Order</h2>
             <CardButtonGroup
               cards={orderOptions}
-              value={settings.random}
+              value={settings.order}
               onChange={(value) =>
                 setSettings({
                   ...settings,
-                  random: value,
+                  order: value,
                 })
               }
             />
           </div>
 
-          <Button type="submit" size="lg">
+          <Button type="submit" size="xl" className="w-full">
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Start quiz
           </Button>

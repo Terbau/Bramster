@@ -220,19 +220,21 @@ export const QuizGame: FC<QuizGameProps> = ({
         postNumber={amountQuestions}
       />
 
-      <div className="mt-8 flex flex-row items-start justify-between">
+      <div className="mt-8">
+        <div className="h-6 w-6 shrink-0 flex items-end float-right top-0">
+          {guessMutateIsPending && (
+            <Loader2 className="h-5 w-5 animate-spin mt-2 mr-2" />
+          )}
+          {lastGuessSyncSuccess !== null &&
+            (lastGuessSyncSuccess ? (
+              <CircleCheck className="h-5 w-5 mt-2 mr-2" />
+            ) : (
+              <CircleX className="text-red-500 h-5 w-5 mt-2 mr-2" />
+            ))}
+        </div>
         <h3 className="text-2xl font-semibold">
           <Latex>{getLocale(currentQuestion.question, "nb_NO")}</Latex>
         </h3>
-        <div className="h-full w-8">
-          <Loader2 className={cn("h-5 w-5 animate-spin hidden mt-2 mr-2 transition-all ease-in-out", { block: guessMutateIsPending })} />
-          {lastGuessSyncSuccess !== null &&
-            (lastGuessSyncSuccess ? (
-              <CircleCheck className="h-5 w-5 mt-2 mr-2 transition-all ease-in-out" />
-            ) : (
-              <CircleX className="text-red-500 h-5 w-5 mt-2 mr-2 transition-all ease-in-out" />
-            ))}
-        </div>
       </div>
       <div className="mt-4 flex flex-col gap-y-3">
         {currentQuestion.options.map((option, index) => (

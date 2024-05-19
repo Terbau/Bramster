@@ -1,4 +1,6 @@
 import { z } from "zod"
+import { Course } from "./course"
+import { QuestionWithOptions } from "./question"
 
 export const GameSession = z.object({
   id: z.string(),
@@ -6,6 +8,7 @@ export const GameSession = z.object({
   updatedAt: z.date(),
   userId: z.string(),
   amountQuestions: z.number(),
+  origin: z.string(),
   finishedAt: z.date().nullable().optional(),
 })
 
@@ -41,3 +44,15 @@ export const ExtendedGameSession = GameSession.extend({
 })
 
 export type ExtendedGameSession = z.infer<typeof ExtendedGameSession>
+
+export const ExtendedGameSessionWithResults = ExtendedGameSession.extend({
+  amountCorrect: z.number(),
+  amountIncorrect: z.number(),
+  questions: z.array(QuestionWithOptions),
+  guesses: z.array(Guess),
+  course: Course,
+})
+
+export type ExtendedGameSessionWithResults = z.infer<
+  typeof ExtendedGameSessionWithResults
+>

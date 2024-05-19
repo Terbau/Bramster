@@ -7,6 +7,7 @@ import NextAuthProvider from "@/lib/context/NextAuthProvider"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Navbar } from "@/components/Nav"
 import { Toaster } from "@/components/ui/toaster"
+import { Footer } from "@/components/Footer"
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -35,6 +36,7 @@ export default function RootLayout({
               {children}
             </main>
             <Toaster />
+            <Footer />
           </QueryClientProvider>
         </NextAuthProvider>
       </body>

@@ -29,7 +29,7 @@ export async function POST(request: NextRequest, { params }: CourseParams) {
   }
 
   const [gameSession, questionsWithOptions] = await Promise.all([
-    createGameSession({ userId: session.user.id, amountQuestions }),
+    createGameSession({ origin, userId: session.user.id, amountQuestions }),
     getQuestionsWithOptions(courseId, origin, amountQuestions, randomOrder),
   ])
 

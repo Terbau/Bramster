@@ -32,6 +32,15 @@ export default function CoursePage({ params }: { params: { id: string } }) {
 
           return a.origin.localeCompare(b.origin)
         })
+
+        data.push({
+          origin: "All",
+          totalQuestions: data.reduce(
+            (acc, courseOrigin) => acc + courseOrigin.totalQuestions,
+            0
+          ),
+        })
+
         return data
       }),
   })
@@ -49,13 +58,13 @@ export default function CoursePage({ params }: { params: { id: string } }) {
       {isLoading ? (
         <Spinner />
       ) : (
-        <div className="flex flex-wrap gap-8">
+        <div className="grid grid-cols-4 auto-rows-fr gap-8">
           {courseOrigins?.map((courseOrigin) => (
             <Link
               key={courseOrigin.origin}
               href={`/courses/${courseId}/${courseOrigin.origin}`}
             >
-              <Card className="w-56 h-24 cursor-pointer hover:bg-gray-50 flex flex-col justify-between">
+              <Card className="cursor-pointer h-full hover:bg-gray-50 flex flex-col justify-between">
                 <CardHeader>
                   <CardTitle>{courseOrigin.origin}</CardTitle>
                   <CardDescription>

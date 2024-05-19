@@ -8,6 +8,8 @@ export const getQuestionsWithOptions = async (
   limit = -1,
   isRandomOrder = false
 ): Promise<QuestionWithOptions[]> => {
+  const lowerOrigin = origin.toLowerCase()
+
   const questions = await db
     .selectFrom("question")
     .leftJoin("questionOption", "question.id", "questionOption.questionId")
@@ -20,7 +22,7 @@ export const getQuestionsWithOptions = async (
       )} IS NOT NULL), '[]')`.as("options"),
     ])
     .where("courseId", "=", courseId)
-    .where("origin", "=", origin)
+    .$if(lowerOrigin !== "all", (qb) => qb.where("origin", "=", lowerOrigin))
     .groupBy("question.id")
     .$if(isRandomOrder, (qb) => qb.orderBy(sql`RANDOM()`))
     .$if(limit > 0, (qb) => qb.limit(limit))

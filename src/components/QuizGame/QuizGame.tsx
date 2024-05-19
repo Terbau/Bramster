@@ -13,10 +13,11 @@ import { Progress } from "../Progress"
 import Latex from "react-latex"
 import { cn } from "@/lib/utils"
 import { Button } from "../ui/button"
-import { CircleCheck, CircleX } from "lucide-react"
+import { CircleCheck, CircleX, Loader2 } from "lucide-react"
 import { useMutation } from "@tanstack/react-query"
 import type { GameSession, GuessCreate } from "@/types/game"
 import { useToast } from "../ui/use-toast"
+import { useRouter } from "next/navigation"
 
 interface QuizGameProps {
   questions: QuestionWithOptions[]
@@ -30,6 +31,7 @@ export const QuizGame: FC<QuizGameProps> = ({
   session,
 }) => {
   const { toast } = useToast()
+  const router = useRouter()
 
   // Find the question with the most options
   const maxOptions = questions.reduce((max, question) => {
@@ -177,7 +179,7 @@ export const QuizGame: FC<QuizGameProps> = ({
     },
   })
 
-  const { mutate: finishMutate } = useMutation({
+  const { mutate: finishMutate, isPending: finishIsLoading } = useMutation({
     mutationKey: ["gameFinish", gameSession.id],
     mutationFn: () =>
       fetch(`/api/game/${gameSession.id}/finish`, {
@@ -187,11 +189,7 @@ export const QuizGame: FC<QuizGameProps> = ({
         },
       }),
     onSuccess: () => {
-      console.log("Game finished!")
-      toast({
-        title: "Game registered",
-        description: "Your game was successfully registered!",
-      })
+      router.push(`/game/${gameSession.id}/results`)
     },
   })
 
@@ -199,7 +197,6 @@ export const QuizGame: FC<QuizGameProps> = ({
     <div>
       <Progress
         value={progress}
-        // pinValue={progressPin}
         preNumber={amountQuestionsDone}
         postNumber={amountQuestions}
       />
@@ -244,6 +241,9 @@ export const QuizGame: FC<QuizGameProps> = ({
         </div>
         {amountQuestionsAnswered === amountQuestions && (
           <Button onClick={() => finishMutate()} className="w-32">
+            {finishIsLoading && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
             Finish
           </Button>
         )}

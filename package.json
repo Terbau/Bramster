@@ -11,7 +11,8 @@
     "migrate": "dotenv -e .env -- ts-node ./tools/migrator/index.ts",
     "migrate-down": "dotenv -e .env -- ts-node ./tools/migrator/index.ts -- down",
     "migrate-down-all": "dotenv -e .env -- ts-node ./tools/migrator/index.ts -- down-all",
-    "update-courses": "dotenv -e .env -- ts-node ./tools/course-updator/index.ts"
+    "update-courses": "dotenv -e .env -- ts-node ./tools/course-updator/index.ts",
+    "update-chat-courses": "dotenv -e .env -- ts-node ./tools/chat-course-updator/index.ts"
   },
   "dependencies": {
     "@biomejs/biome": "^1.7.3",
@@ -30,6 +31,7 @@
     "dotenv-cli": "^7.4.2",
     "kysely": "^0.27.3",
     "lucide-react": "^0.378.0",
+    "moment": "^2.30.1",
     "next": "14.2.3",
     "next-auth": "^4.24.7",
     "pg": "^8.11.5",

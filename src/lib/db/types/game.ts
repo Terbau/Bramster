@@ -6,6 +6,7 @@ export interface GameSession {
   updatedAt: Generated<Date>
   userId: string
   amountQuestions: number
+  origin: string
   finishedAt: Date | null
 }
 

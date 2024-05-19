@@ -60,7 +60,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
       {isLoading ? (
         <Spinner />
       ) : (
-        <div className="grid auto-cols-fr md:grid-cols-4 auto-rows-max md:auto-rows-fr gap-8">
+        <div className="grid auto-cols-fr md:grid-cols-4 auto-rows-max md:auto-rows-fr gap-4 sm:gap-8">
           {courseOrigins?.map((courseOrigin) => (
             <Link
               key={courseOrigin.origin}

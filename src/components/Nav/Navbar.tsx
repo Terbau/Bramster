@@ -12,7 +12,7 @@ export const Navbar = () => {
         {session ? (
           <Button onClick={() => signOut()}>Sign out</Button>
         ) : (
-          <Button onClick={() => signIn("google")}>Sign in</Button>
+          <Button onClick={() => signIn("auth0")}>Sign in</Button>
         )}
       </div>
     </div>

@@ -23,7 +23,7 @@ export const Courses = () => {
   }
 
   return (
-    <div className="grid auto-cols-fr lg:grid-cols-3 gap-8">
+    <div className="grid auto-cols-fr lg:grid-cols-3 gap-4 sm:gap-8">
       {courses?.map((course) => (
         <Link key={course.id} href={`/courses/${course.id}`}>
           <Card className="h-44 cursor-pointer hover:bg-gray-50 flex flex-col justify-between">

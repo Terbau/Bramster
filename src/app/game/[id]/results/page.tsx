@@ -133,7 +133,7 @@ export default function GameResultsPage({
         </TableBody>
         <TableFooter>
           <TableRow>
-            <TableCell>
+            <TableCell colSpan={3}>
               Total score: {data.amountCorrect}/{data.questions.length}
             </TableCell>
           </TableRow>

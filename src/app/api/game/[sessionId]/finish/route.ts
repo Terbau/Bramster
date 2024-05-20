@@ -34,7 +34,7 @@ export async function POST(
     )
   }
 
-  if (gameSession.amountQuestions !== gameSession.guessAmount) {
+  if (gameSession.amountQuestions > 0 && gameSession.amountQuestions !== gameSession.guessAmount) {
     return NextResponse.json(
       { message: "Game session is not completed" },
       { status: 400 }

@@ -1,5 +1,4 @@
 import type { QuestionWithOptions } from "@/types/question"
-import type { Session } from "next-auth"
 import {
   type RefObject,
   useRef,
@@ -22,13 +21,11 @@ import { useRouter } from "next/navigation"
 interface QuizGameProps {
   questions: QuestionWithOptions[]
   gameSession: GameSession
-  session: Session | null
 }
 
 export const QuizGame: FC<QuizGameProps> = ({
   questions,
   gameSession,
-  session,
 }) => {
   const { toast } = useToast()
   const router = useRouter()

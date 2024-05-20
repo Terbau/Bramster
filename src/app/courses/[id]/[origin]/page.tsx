@@ -11,6 +11,11 @@ import { Loader2 } from "lucide-react"
 import { signIn, useSession } from "next-auth/react"
 import { type FormEvent, useState, useEffect } from "react"
 
+interface GameMutationResponse {
+  gameSession: GameSession
+  questions: QuestionWithOptions[]
+}
+
 const limitOptions = [
   {
     label: "10 questions",
@@ -66,12 +71,11 @@ export default function QuizPage({
     return defaultSettings
   }
 
-  const [settings, setSettings] = useState<{ limit: number; order: string }>(handleLocalStorageLoad("quiz-settings"))
+  const [settings, setSettings] = useState<{ limit: number; order: string }>(
+    handleLocalStorageLoad("quiz-settings")
+  )
 
-  const { data, mutate, isPending } = useMutation<{
-    gameSession: GameSession
-    questions: QuestionWithOptions[]
-  }>({
+  const { data, mutate, isPending } = useMutation<GameMutationResponse>({
     mutationKey: ["game", courseId, origin],
     mutationFn: () =>
       fetch(`/api/courses/${courseId}/game`, {
@@ -84,7 +88,14 @@ export default function QuizPage({
           amountQuestions: settings.limit,
           order: settings.order,
         }),
-      }).then((res) => res.json()),
+      }).then((res) =>
+        res.json().then((data: GameMutationResponse) => {
+          for (const question of data.questions) {
+            question.options = question.options.sort(() => Math.random() - 0.5)
+          }
+          return data
+        })
+      ),
   })
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -102,7 +113,10 @@ export default function QuizPage({
         links={[
           { label: "Courses", href: "/courses" },
           { label: courseId.toUpperCase(), href: `/courses/${courseId}` },
-          { label: capitalized(origin), href: `/courses/${courseId}/${origin}` },
+          {
+            label: capitalized(origin),
+            href: `/courses/${courseId}/${origin}`,
+          },
         ]}
       />
 
@@ -154,11 +168,7 @@ export default function QuizPage({
       )}
 
       {session && data && (
-        <QuizGame
-          questions={data.questions}
-          gameSession={data.gameSession}
-          session={session}
-        />
+        <QuizGame questions={data.questions} gameSession={data.gameSession} />
       )}
     </div>
   )

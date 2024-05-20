@@ -36,6 +36,7 @@ program
 
           questions.push({
             courseId: course,
+            label: null,
             question,
             origin,
           })

@@ -66,6 +66,7 @@ program
             questions.push({
               courseId: course,
               question,
+              label: null,
               origin: exam,
             })
             const questionOptions = options.map(

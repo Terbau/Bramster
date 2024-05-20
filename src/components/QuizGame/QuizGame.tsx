@@ -7,7 +7,6 @@ import {
   createRef,
   useEffect,
 } from "react"
-// import { Progress } from "../ui/progress"
 import { Progress } from "../Progress"
 import Latex from "react-latex"
 import { cn } from "@/lib/utils"
@@ -15,7 +14,6 @@ import { Button } from "../ui/button"
 import { CircleCheck, CircleX, Loader2 } from "lucide-react"
 import { useMutation } from "@tanstack/react-query"
 import type { GameSession, GuessCreate } from "@/types/game"
-import { useToast } from "../ui/use-toast"
 import { useRouter } from "next/navigation"
 
 interface QuizGameProps {
@@ -23,11 +21,7 @@ interface QuizGameProps {
   gameSession: GameSession
 }
 
-export const QuizGame: FC<QuizGameProps> = ({
-  questions,
-  gameSession,
-}) => {
-  const { toast } = useToast()
+export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
   const router = useRouter()
   const [lastGuessSyncSuccess, setLastGuessSyncSuccess] = useState<
     boolean | null
@@ -44,9 +38,15 @@ export const QuizGame: FC<QuizGameProps> = ({
   )
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [currentHoveredOptionIndex, setCurrentHoveredOptionIndex] = useState(-1)
+  const [syncedCount, setSyncedCount] = useState(0)
   const [questionStates, setQuestionStates] = useState<
     { showAnswer: boolean; answeredIndex: number }[]
-  >(questions.map(() => ({ showAnswer: false, answeredIndex: -1 })))
+  >(
+    questions.map(() => ({
+      showAnswer: false,
+      answeredIndex: -1,
+    }))
+  )
 
   const showAnswer = questionStates[currentQuestionIndex].showAnswer
   const answeredIndex = questionStates[currentQuestionIndex].answeredIndex
@@ -189,6 +189,7 @@ export const QuizGame: FC<QuizGameProps> = ({
         }),
       onSuccess: () => {
         handleSetLastGuessSyncSuccess(true)
+        setSyncedCount((prev) => prev + 1)
       },
       onError: () => {
         handleSetLastGuessSyncSuccess(false)
@@ -200,9 +201,6 @@ export const QuizGame: FC<QuizGameProps> = ({
     mutationFn: () =>
       fetch(`/api/game/${gameSession.id}/finish`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
       }),
     onSuccess: () => {
       router.push(`/game/${gameSession.id}/results`)
@@ -273,14 +271,15 @@ export const QuizGame: FC<QuizGameProps> = ({
             Next
           </Button>
         </div>
-        {amountQuestionsAnswered === amountQuestions && (
-          <Button onClick={() => finishMutate()} className="w-full sm:w-32">
-            {finishIsLoading && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            Finish
-          </Button>
-        )}
+        {amountQuestionsAnswered === amountQuestions &&
+          syncedCount === amountQuestions && (
+            <Button onClick={() => finishMutate()} className="w-full sm:w-32">
+              {finishIsLoading && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Finish
+            </Button>
+          )}
       </div>
     </div>
   )

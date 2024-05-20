@@ -84,6 +84,7 @@ export const getGameSessionWithResults = async (
           'courseId', ${ref("question.courseId")},
           'question', ${ref("question.question")},
           'origin', ${ref("question.origin")},
+          'label', ${ref("question.label")},
           'options', (
             SELECT COALESCE(json_agg(
               json_build_object(

@@ -1,6 +1,7 @@
 import { authOptions } from "@/lib/auth"
 import { createGameSession } from "@/lib/functions/game"
 import {
+  getAmountOfQuestionsForOrigin,
   getQuestionsWithOptions,
   getQuestionsWithOptionsBasedOnHistory,
 } from "@/lib/functions/question"
@@ -33,11 +34,20 @@ export async function POST(request: NextRequest, { params }: CourseParams) {
     return NextResponse.json({ message: "Origin is required" }, { status: 400 })
   }
 
+  const actualAmountOfQuestions = await getAmountOfQuestionsForOrigin(
+    courseId,
+    origin
+  )
+  const amountQuestionsToGet = Math.min(
+    amountQuestions,
+    actualAmountOfQuestions
+  )
+
   const funcs: [Promise<GameSession>, Promise<QuestionWithOptions[]>] = [
     createGameSession({
       origin,
       userId: session.user.id,
-      amountQuestions,
+      amountQuestions: amountQuestionsToGet,
       courseId,
     }),
     order === "worst"
@@ -45,12 +55,12 @@ export async function POST(request: NextRequest, { params }: CourseParams) {
           courseId,
           origin,
           session.user.id,
-          amountQuestions
+          amountQuestionsToGet
         )
       : getQuestionsWithOptions(
           courseId,
           origin,
-          amountQuestions,
+          amountQuestionsToGet,
           order === "random"
         ),
   ]

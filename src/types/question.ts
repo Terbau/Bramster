@@ -7,6 +7,7 @@ export const Question = z.object({
   courseId: z.string(),
   question: z.string(),
   origin: z.string(),
+  label: z.string().nullable().optional(),
 })
 
 export type Question = z.infer<typeof Question>

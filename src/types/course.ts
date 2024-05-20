@@ -23,6 +23,7 @@ export type ExtendedCourse = z.infer<typeof ExtendedCourse>
 export const CourseOrigin = z.object({
   origin: z.string(),
   totalQuestions: z.number(),
+  label: z.string().nullable(),
 })
 
 export type CourseOrigin = z.infer<typeof CourseOrigin>

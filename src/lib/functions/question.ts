@@ -8,6 +8,20 @@ import { sql } from "kysely"
 import type { User } from "../db/types/user"
 import type { Course } from "@/types/course"
 
+export const getAmountOfQuestionsForOrigin = async (
+  courseId: Course["id"],
+  origin: Question["origin"]
+): Promise<number> => {
+  const amountOfQuestions = await db
+    .selectFrom("question")
+    .select(({ fn }) => [fn.count<number>("id").as("amount")])
+    .where("courseId", "=", courseId)
+    .$if(origin !== "all", (qb) => qb.where("origin", "=", origin))
+    .executeTakeFirst()
+
+  return amountOfQuestions?.amount ?? 0
+}
+
 export const getQuestionsWithOptions = async (
   courseId: Course["id"],
   origin: Question["origin"],

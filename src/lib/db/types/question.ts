@@ -7,6 +7,7 @@ export interface Question {
   courseId: string
   question: string
   origin: string
+  label: string | null
 }
 
 export interface QuestionOption {

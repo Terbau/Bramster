@@ -5,12 +5,9 @@ import { sql } from "kysely"
 export const getCourses = async (): Promise<ExtendedCourse[]> => {
   const courses = await db
     .selectFrom("course")
+    .selectAll("course")
     .leftJoin("question", "course.id", "question.courseId")
     .select(({ fn, ref }) => [
-      "course.id",
-      "course.name",
-      "course.createdAt",
-      "course.updatedAt",
       fn.count<number>("question.id").as("totalQuestions"),
       sql<number>`count(DISTINCT ${ref("question.origin")})`.as("totalOrigins"),
     ])
@@ -28,10 +25,11 @@ export const getCourseOrigins = async (
     .leftJoin("course", "question.courseId", "course.id")
     .select(({ fn }) => [
       "question.origin",
+      "question.label",
       fn.count<number>("question.id").as("totalQuestions"),
     ])
     .where("course.id", "=", courseId)
-    .groupBy("origin")
+    .groupBy(["question.origin", "question.label"])
     .execute()
 
   return origins

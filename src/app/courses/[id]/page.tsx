@@ -2,6 +2,7 @@
 
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { Spinner } from "@/components/Spinner"
+import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardDescription,
@@ -37,6 +38,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
         // insert at the beginning the total of all questions
         data.splice(0, 0, {
           origin: "all",
+          label: null,
           totalQuestions: data.reduce(
             (acc, courseOrigin) => acc + courseOrigin.totalQuestions,
             0
@@ -66,7 +68,12 @@ export default function CoursePage({ params }: { params: { id: string } }) {
               key={courseOrigin.origin}
               href={`/courses/${courseId}/${courseOrigin.origin}`}
             >
-              <Card className="cursor-pointer h-full hover:bg-gray-50 flex flex-col justify-between">
+              <Card className="cursor-pointer h-full hover:bg-gray-50 flex flex-col justify-between relative">
+                {courseOrigin.label && (
+                  <Badge className="absolute -top-3 -right-2">
+                    {courseOrigin.label}
+                  </Badge>
+                )}
                 <CardHeader>
                   <CardTitle>{capitalized(courseOrigin.origin)}</CardTitle>
                   <CardDescription>

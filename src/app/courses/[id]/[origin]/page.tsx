@@ -1,4 +1,5 @@
 "use client"
+
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { CardButtonGroup } from "@/components/CardButtonGroup"
 import { QuizGame } from "@/components/QuizGame/QuizGame"
@@ -63,6 +64,8 @@ export default function QuizPage({
   const { data: session } = useSession()
 
   const handleLocalStorageLoad = (key: string) => {
+    if (typeof window === "undefined") return defaultSettings
+
     const item = localStorage.getItem(key)
     if (item) {
       return JSON.parse(item)

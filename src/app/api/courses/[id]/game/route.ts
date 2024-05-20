@@ -34,7 +34,12 @@ export async function POST(request: NextRequest, { params }: CourseParams) {
   }
 
   const funcs: [Promise<GameSession>, Promise<QuestionWithOptions[]>] = [
-    createGameSession({ origin, userId: session.user.id, amountQuestions }),
+    createGameSession({
+      origin,
+      userId: session.user.id,
+      amountQuestions,
+      courseId,
+    }),
     order === "worst"
       ? getQuestionsWithOptionsBasedOnHistory(
           courseId,

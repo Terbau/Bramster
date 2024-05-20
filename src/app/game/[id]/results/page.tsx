@@ -15,15 +15,19 @@ import { asReadbleTime, capitalized } from "@/lib/utils"
 import type { ExtendedGameSessionWithResults } from "@/types/game"
 import { useQuery } from "@tanstack/react-query"
 import { CircleCheck, CircleX } from "lucide-react"
+import { useSession } from "next-auth/react"
 import Latex from "react-latex"
 
 export default function GameResultsPage({
   params,
 }: { params: { id: string } }) {
+  const { data: session } = useSession()
+
   const { data, isLoading } = useQuery<ExtendedGameSessionWithResults>({
     queryKey: ["gameResults", params.id],
     queryFn: () =>
       fetch(`/api/game/${params.id}/results`).then((res) => res.json()),
+    enabled: !!session,
   })
 
   if (isLoading) {
@@ -133,7 +137,7 @@ export default function GameResultsPage({
         </TableBody>
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={3}>
+            <TableCell colSpan={4}>
               Total score: {data.amountCorrect}/{data.questions.length}
             </TableCell>
           </TableRow>

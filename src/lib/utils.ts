@@ -10,6 +10,19 @@ export function asReadbleTime(date: Date) {
   return moment(date).format("MMMM Do YYYY, hh:mm:ss")
 }
 
+export function asMoreReadableTime(date: Date) {
+  const now = moment();
+  const inputDate = moment(date);
+
+  const daysDifference = now.diff(inputDate, 'days');
+
+  if (daysDifference < 14) {
+    return inputDate.fromNow();
+  }
+
+  return inputDate.format('MMMM Do YYYY, hh:mm:ss');
+}
+
 export const capitalized = (input: string) =>
   input
     .split(" ")

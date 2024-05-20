@@ -25,6 +25,9 @@ export default function RootLayout({
     <html lang="en">
       <NextAuthProvider>
         <QueryClientProvider client={queryClient}>
+          <head>
+            <title>Bramster</title>
+          </head>
           <body
             className={cn(
               "min-h-screen bg-background font-sans antialiased flex flex-col w-full",

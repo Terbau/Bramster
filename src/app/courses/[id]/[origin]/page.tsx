@@ -9,7 +9,7 @@ import type { QuestionWithOptions } from "@/types/question"
 import { useMutation } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
 import { signIn, useSession } from "next-auth/react"
-import { type FormEvent, useState } from "react"
+import { type FormEvent, useState, useEffect } from "react"
 
 const limitOptions = [
   {
@@ -45,6 +45,11 @@ const orderOptions = [
   },
 ]
 
+const defaultSettings = {
+  limit: limitOptions[0].value,
+  order: orderOptions[0].value,
+}
+
 export default function QuizPage({
   params,
 }: { params: { id: string; origin: string } }) {
@@ -52,10 +57,16 @@ export default function QuizPage({
   const origin = decodeURIComponent(params.origin)
   const { data: session } = useSession()
 
-  const [settings, setSettings] = useState<{ limit: number; order: string }>({
-    limit: limitOptions[0].value,
-    order: orderOptions[0].value,
-  })
+  const handleLocalStorageLoad = (key: string) => {
+    const item = localStorage.getItem(key)
+    if (item) {
+      return JSON.parse(item)
+    }
+
+    return defaultSettings
+  }
+
+  const [settings, setSettings] = useState<{ limit: number; order: string }>(handleLocalStorageLoad("quiz-settings"))
 
   const { data, mutate, isPending } = useMutation<{
     gameSession: GameSession
@@ -81,6 +92,10 @@ export default function QuizPage({
     mutate()
   }
 
+  useEffect(() => {
+    localStorage.setItem("quiz-settings", JSON.stringify(settings))
+  }, [settings])
+
   return (
     <div className="flex flex-col gap-y-4">
       <Breadcrumb
@@ -98,7 +113,7 @@ export default function QuizPage({
       {!session && (
         <div className="space-y-2">
           <p>You need to sign in to take the quiz</p>
-          <Button onClick={() => signIn("google")}>Sign in</Button>
+          <Button onClick={() => signIn("auth0")}>Sign in</Button>
         </div>
       )}
 

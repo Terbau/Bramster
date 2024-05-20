@@ -31,9 +31,10 @@ export const CardButtonGroup = <T,>({
           key={String(card.value)}
           ref={ref.current[index]}
           onClick={() => onChange?.(card.value)}
+          className="h-full"
         >
           <Card
-            className={cn({
+            className={cn("h-full flex flex-col justify-center", {
               "border bg-gray-50 border-primary": card.value === value,
             })}
           >

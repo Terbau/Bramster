@@ -7,6 +7,7 @@ export interface GameSession {
   userId: string
   amountQuestions: number
   origin: string
+  courseId: string
   finishedAt: Date | null
 }
 

@@ -9,6 +9,7 @@ export const GameSession = z.object({
   userId: z.string(),
   amountQuestions: z.number(),
   origin: z.string(),
+  courseId: z.string(),
   finishedAt: z.date().nullable().optional(),
 })
 

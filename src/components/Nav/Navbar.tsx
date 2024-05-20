@@ -4,11 +4,15 @@ import Link from "next/link"
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "../ui/avatar"
 import { AvatarImage } from "@radix-ui/react-avatar"
+import { AreaChart, LogOut } from "lucide-react"
 
 export const Navbar = () => {
   const { data: session } = useSession()
@@ -32,15 +36,37 @@ export const Navbar = () => {
                 </Avatar>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 mr-2 mt-4 p-3 flex flex-col gap-y-2">
+            <DropdownMenuContent className="w-56 mr-2 mt-4">
               <div className="flex flex-col">
-                <span className="font-semibold">{session.user.name}</span>
-                {session.user.email}
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <span className="-mt-1 px-2 text-sm">{session.user.email}</span>
               </div>
 
-              <Button className="w-full" onClick={() => signOut()}>
-                Sign out
-              </Button>
+              <DropdownMenuSeparator />
+
+              <DropdownMenuGroup>
+                <DropdownMenuItem asChild>
+                  <Link href="/my-results" className="">
+                  <AreaChart className="mr-2 h-4 w-4" />
+                    <span>
+                      My results
+                      </span>
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem asChild>
+                <button
+                  type="button"
+                  onClick={() => signOut()}
+                  className="w-full"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </button>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (

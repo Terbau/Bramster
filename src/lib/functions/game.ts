@@ -10,6 +10,7 @@ import { db } from "../db"
 import type { Question, QuestionWithOptions } from "@/types/question"
 import { sql } from "kysely"
 import type { Course } from "@/types/course"
+import type { User } from "../db/types/user"
 
 export const createGameSession = async (
   data: GameSessionCreate
@@ -56,14 +57,14 @@ export const getGameSessionWithResults = async (
   gameSessionId: GameSession["id"]
 ): Promise<ExtendedGameSessionWithResults | undefined> => {
   const gameSession = await db
-  .selectFrom("gameSession")
-  .selectAll("gameSession")
-  .leftJoin("guess", "gameSession.id", "guess.gameSessionId")
-  .leftJoin("question", "guess.questionId", "question.id")
-  .leftJoin("questionOption", "guess.optionId", "questionOption.id")
-  .leftJoin("course", "question.courseId", "course.id")
-  .select(({ fn, ref }) => [
-    sql<Guess[]>`COALESCE(
+    .selectFrom("gameSession")
+    .selectAll("gameSession")
+    .leftJoin("guess", "gameSession.id", "guess.gameSessionId")
+    .leftJoin("question", "guess.questionId", "question.id")
+    .leftJoin("questionOption", "guess.optionId", "questionOption.id")
+    .leftJoin("course", "question.courseId", "course.id")
+    .select(({ fn, ref }) => [
+      sql<Guess[]>`COALESCE(
       json_agg(
         json_build_object(
           'id', ${ref("guess.id")},
@@ -74,7 +75,7 @@ export const getGameSessionWithResults = async (
         )
       ) FILTER (WHERE ${ref("guess.id")} IS NOT NULL), '[]'
     )`.as("guesses"),
-    sql<QuestionWithOptions[]>`COALESCE(
+      sql<QuestionWithOptions[]>`COALESCE(
       json_agg(
         DISTINCT jsonb_build_object(
           'id', ${ref("question.id")},
@@ -100,19 +101,23 @@ export const getGameSessionWithResults = async (
         )
       ) FILTER (WHERE ${ref("question.id")} IS NOT NULL), '[]'
     )`.as("questions"),
-    fn.count<number>("guess.id").as("guessAmount"),
-    sql<number>`COUNT(*) FILTER (WHERE ${ref("questionOption.correct")} = TRUE)`.as("amountCorrect"),
-    sql<number>`COUNT(*) FILTER (WHERE ${ref("questionOption.correct")} = FALSE)`.as("amountIncorrect"),
-    sql<Course>`json_build_object(
+      fn.count<number>("guess.id").as("guessAmount"),
+      sql<number>`COUNT(*) FILTER (WHERE ${ref(
+        "questionOption.correct"
+      )} = TRUE)`.as("amountCorrect"),
+      sql<number>`COUNT(*) FILTER (WHERE ${ref(
+        "questionOption.correct"
+      )} = FALSE)`.as("amountIncorrect"),
+      sql<Course>`json_build_object(
       'id', ${ref("course.id")},
       'createdAt', ${ref("course.createdAt")},
       'updatedAt', ${ref("course.updatedAt")},
       'name', ${ref("course.name")}
     )`.as("course"),
-  ])
-  .where("gameSession.id", "=", gameSessionId)
-  .groupBy(["gameSession.id", "course.id"])
-  .executeTakeFirst();
+    ])
+    .where("gameSession.id", "=", gameSessionId)
+    .groupBy(["gameSession.id", "course.id"])
+    .executeTakeFirst()
 
   return gameSession
 }
@@ -139,4 +144,35 @@ export const getGuess = async (
     .executeTakeFirst()
 
   return guess
+}
+
+export const getGameSessionsForUser = async (
+  userId: User["id"],
+  page = 0,
+  limit = 30
+): Promise<GameSession[]> => {
+  const gameSessions = await db
+    .selectFrom("gameSession")
+    .selectAll("gameSession")
+    .orderBy("createdAt", "desc")
+    .where("userId", "=", userId)
+    .where("finishedAt", "is not", null)
+    .limit(limit)
+    .offset(page * limit)
+    .execute()
+
+  return gameSessions
+}
+
+export const getTotalGameSessionsForUser = async (
+  userId: User["id"]
+): Promise<number> => {
+  const row = await db
+    .selectFrom("gameSession")
+    .select(({ fn }) => [fn.count("id").as("count")])
+    .where("userId", "=", userId)
+    .where("finishedAt", "is not", null)
+    .executeTakeFirst()
+
+  return row ? Number(row.count) : 0
 }

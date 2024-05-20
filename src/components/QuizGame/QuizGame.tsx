@@ -9,7 +9,7 @@ import {
 } from "react"
 import { Progress } from "../Progress"
 import Latex from "react-latex"
-import { cn } from "@/lib/utils"
+import { cn, getPartByLocale } from "@/lib/utils"
 import { Button } from "../ui/button"
 import { CircleCheck, CircleX, Loader2 } from "lucide-react"
 import { useMutation } from "@tanstack/react-query"
@@ -61,24 +61,6 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
 
   const currentQuestion = questions[currentQuestionIndex]
   const currentOptionsLength = currentQuestion.options.length
-
-  const getLocale = (
-    multipartString: string,
-    locale: "nb_NO" | "nn_NO" | "en_US"
-  ) => {
-    const split = multipartString.split("/")
-
-    switch (locale) {
-      case "nb_NO":
-        return split.at(0)
-      case "nn_NO":
-        return split.at(1)
-      case "en_US":
-        return split.at(2)
-      default:
-        return split.at(0)
-    }
-  }
 
   const handleOptionClick = (index: number) => {
     if (showAnswer) {
@@ -228,7 +210,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
             ))}
         </div>
         <h3 className="text-2xl font-semibold">
-          <Latex>{getLocale(currentQuestion.question, "nb_NO")}</Latex>
+          <Latex>{getPartByLocale(currentQuestion.question, "nb_NO")}</Latex>
         </h3>
       </div>
       <div className="mt-4 flex flex-col gap-y-3">
@@ -248,7 +230,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
             )}
           >
             <span className="text-left">
-              <Latex>{getLocale(option.option, "nb_NO")}</Latex>
+              <Latex>{getPartByLocale(option.option, "nb_NO")}</Latex>
             </span>
             {answeredIndex === index &&
               (option.correct ? (

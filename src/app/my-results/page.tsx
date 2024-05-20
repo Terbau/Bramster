@@ -1,6 +1,7 @@
 "use client"
 
 import { Breadcrumb } from "@/components/Breadcrumb"
+import { Pagination } from "@/components/Pagination"
 import { Spinner } from "@/components/Spinner"
 import {
   Card,
@@ -9,16 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
-import { asMoreReadableTime, cn } from "@/lib/utils"
+import { asMoreReadableTime } from "@/lib/utils"
 import type { GameSession } from "@/types/game"
 import type { Paginated } from "@/types/pagination"
 import { useQuery } from "@tanstack/react-query"
@@ -42,12 +34,6 @@ export default function MyResultsPage() {
   })
 
   const totalPages = Math.ceil((data?.total ?? 0) / pageSize)
-  const currentPage = page
-  const fixedPageComparison =
-    totalPages > 2 && currentPage < 1 ? totalPages - 1 : totalPages
-
-  const paginationPreviousDisabled = currentPage <= 0
-  const paginationNextDisabled = currentPage >= totalPages - 1
 
   return (
     <div>
@@ -75,7 +61,10 @@ export default function MyResultsPage() {
                   <CardFooter className="px-4 pb-4 sm:px-6 sm:pb-6">
                     <div className="text-xs sm:text-sm">
                       <span className="">
-                        {gameSession.amountQuestions} questions •{" "}
+                        {gameSession.amountQuestions > 0
+                          ? gameSession.amountQuestions
+                          : "All"}{" "}
+                        questions •{" "}
                         {asMoreReadableTime(
                           gameSession.finishedAt ?? new Date()
                         )}
@@ -87,63 +76,12 @@ export default function MyResultsPage() {
             ))}
           </div>
           {totalPages > 1 && (
-            <Pagination className="mt-4 sm:mt-8">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href={`?page=${currentPage - 1}&pageSize=${pageSize}`}
-                    aria-disabled={paginationPreviousDisabled}
-                    tabIndex={paginationPreviousDisabled ? -1 : 0}
-                    className={cn({
-                      "text-gray-400 hover:text-gray-400 hover:border-none hover:bg-red":
-                        paginationPreviousDisabled,
-                    })}
-                  />
-                </PaginationItem>
-                {currentPage > 1 && (
-                  <PaginationItem>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                )}
-                {Array.from({
-                  length:
-                    currentPage > 0
-                      ? Math.max(Math.min(fixedPageComparison, 3), 1)
-                      : Math.max(Math.min(fixedPageComparison, 2), 1),
-                }).map((_, index) => {
-                  const actualIndex =
-                    currentPage - (currentPage > 0 ? 1 : 0) + index
-
-                  return (
-                    <PaginationItem key={actualIndex}>
-                      <PaginationLink
-                        href={`?page=${actualIndex}&pageSize=${pageSize}`}
-                        isActive={actualIndex === currentPage}
-                      >
-                        {actualIndex + 1}
-                      </PaginationLink>
-                    </PaginationItem>
-                  )
-                })}
-                {currentPage < totalPages - 2 && (
-                  <PaginationItem>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                )}
-
-                <PaginationItem>
-                  <PaginationNext
-                    href={`?page=${currentPage + 1}&pageSize=${pageSize}`}
-                    aria-disabled={paginationNextDisabled}
-                    tabIndex={paginationNextDisabled ? -1 : 0}
-                    className={cn({
-                      "text-gray-400 hover:text-gray-400 hover:border-none hover:bg-red":
-                        paginationNextDisabled,
-                    })}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+            <Pagination
+              page={page}
+              pageSize={pageSize}
+              totalPages={totalPages}
+              className="mt-4 sm:mt-8"
+            />
           )}
         </>
       )}

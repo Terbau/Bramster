@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { asReadbleTime, capitalized } from "@/lib/utils"
+import { asReadbleTime, capitalized, getPartByLocale } from "@/lib/utils"
 import type { ExtendedGameSessionWithResults } from "@/types/game"
 import { useQuery } from "@tanstack/react-query"
 import { CircleCheck, CircleX } from "lucide-react"
@@ -116,13 +116,15 @@ export default function GameResultsPage({
             return (
               <TableRow key={question.id} className="h-full text-xs sm:text-sm">
                 <TableCell>
-                  <Latex>{question.question}</Latex>
+                  <Latex>{getPartByLocale(question.question, "nb_NO")}</Latex>
                 </TableCell>
                 <TableCell>
-                  <Latex>{guessOption.option}</Latex>
+                  <Latex>{getPartByLocale(guessOption.option, "nb_NO")}</Latex>
                 </TableCell>
                 <TableCell>
-                  <Latex>{correctOption.option}</Latex>
+                  <Latex>
+                    {getPartByLocale(correctOption.option, "nb_NO")}
+                  </Latex>
                 </TableCell>
                 <TableCell className="h-full">
                   {guessOption.correct ? (

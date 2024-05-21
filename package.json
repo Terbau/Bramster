@@ -22,6 +22,7 @@
     "@radix-ui/react-progress": "^1.0.3",
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-toast": "^1.1.5",
+    "@radix-ui/react-tooltip": "^1.0.7",
     "@tanstack/react-query": "^5.36.0",
     "@types/pg": "^8.11.6",
     "@types/react-latex": "^2.0.3",

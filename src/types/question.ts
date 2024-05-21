@@ -41,14 +41,7 @@ export type QuestionOptionCreate = z.infer<typeof QuestionOptionCreate>
 
 export const QuestionWithOptions = Question.extend({
   options: z.array(QuestionOption),
-})
-
-export type QuestionWithOptions = z.infer<typeof QuestionWithOptions>
-
-export const WeightedQuestionWithOptions = QuestionWithOptions.extend({
   weight: z.number().nullable(),
 })
 
-export type WeightedQuestionWithOptions = z.infer<
-  typeof WeightedQuestionWithOptions
->
+export type QuestionWithOptions = z.infer<typeof QuestionWithOptions>

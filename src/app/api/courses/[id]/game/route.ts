@@ -3,7 +3,6 @@ import { createGameSession } from "@/lib/functions/game"
 import {
   getAmountOfQuestionsForOrigin,
   getQuestionsWithOptions,
-  getQuestionsWithOptionsBasedOnHistory,
 } from "@/lib/functions/question"
 import { getServerSession } from "next-auth"
 import { NextResponse, type NextRequest } from "next/server"
@@ -43,6 +42,14 @@ export async function POST(request: NextRequest, { params }: CourseParams) {
     actualAmountOfQuestions
   )
 
+  let shouldOrderByWeightFirst = false
+  let isRandomOrder = order === "random"
+
+  if (order === "worst") {
+    shouldOrderByWeightFirst = true
+    isRandomOrder = true
+  }
+
   const funcs: [Promise<GameSession>, Promise<QuestionWithOptions[]>] = [
     createGameSession({
       origin,
@@ -50,19 +57,14 @@ export async function POST(request: NextRequest, { params }: CourseParams) {
       amountQuestions: amountQuestionsToGet,
       courseId,
     }),
-    order === "worst"
-      ? getQuestionsWithOptionsBasedOnHistory(
-          courseId,
-          origin,
-          session.user.id,
-          amountQuestionsToGet
-        )
-      : getQuestionsWithOptions(
-          courseId,
-          origin,
-          amountQuestionsToGet,
-          order === "random"
-        ),
+    getQuestionsWithOptions(
+      courseId,
+      origin,
+      session.user.id,
+      amountQuestionsToGet,
+      shouldOrderByWeightFirst,
+      isRandomOrder
+    ),
   ]
 
   const [gameSession, questionsWithOptions] = await Promise.all(funcs)

@@ -1,7 +1,7 @@
 import type {
   Question,
   QuestionOption,
-  WeightedQuestionWithOptions,
+  QuestionWithOptions,
 } from "@/types/question"
 import { db } from "../db"
 import { sql } from "kysely"
@@ -22,12 +22,12 @@ export const getAmountOfQuestionsForOrigin = async (
   return amountOfQuestions?.amount ?? 0
 }
 
-export const getQuestionsWithOptions = async (
+export const getQuestionsWithOptionsIgnoreWeight = async (
   courseId: Course["id"],
   origin: Question["origin"],
   limit = -1,
   isRandomOrder = false
-): Promise<WeightedQuestionWithOptions[]> => {
+): Promise<QuestionWithOptions[]> => {
   const questions = await db
     .selectFrom("question")
     .leftJoin("questionOption", "question.id", "questionOption.questionId")
@@ -50,12 +50,14 @@ export const getQuestionsWithOptions = async (
   return questions
 }
 
-export const getQuestionsWithOptionsBasedOnHistory = async (
+export const getQuestionsWithOptions = async (
   courseId: Course["id"],
   origin: Question["origin"],
   userId: User["id"],
-  limit = -1
-): Promise<WeightedQuestionWithOptions[]> => {
+  limit = -1,
+  shouldOrderByWeightFirst = false,
+  isRandomOrder = false
+): Promise<QuestionWithOptions[]> => {
   const questions = await db
     .selectFrom("question")
     .selectAll("question")
@@ -84,7 +86,8 @@ export const getQuestionsWithOptionsBasedOnHistory = async (
     .groupBy("question.id")
     .$if(origin !== "all", (qb) => qb.where("question.origin", "=", origin))
     .$if(limit > 0, (qb) => qb.limit(limit))
-    .orderBy("weight", "asc")
+    .$if(shouldOrderByWeightFirst, (qb) => qb.orderBy("weight", "asc"))
+    .$if(isRandomOrder, (qb) => qb.orderBy(sql`RANDOM()`))
     .execute()
 
   return questions

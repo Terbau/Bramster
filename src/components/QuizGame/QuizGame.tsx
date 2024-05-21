@@ -15,11 +15,48 @@ import { CircleCheck, CircleX, Loader2 } from "lucide-react"
 import { useMutation } from "@tanstack/react-query"
 import type { GameSession, GuessCreate } from "@/types/game"
 import { useRouter } from "next/navigation"
+import { Badge } from "../ui/badge"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip"
 
 interface QuizGameProps {
   questions: QuestionWithOptions[]
   gameSession: GameSession
 }
+
+const weights = [-2, -1, 0, 2, 4]
+
+const weightedDotDistribution = {
+  [weights[0]]: {
+    amount: 1,
+    color: "text-red-500",
+    tooltip: "This question is hard for you",
+  },
+  [weights[1]]: {
+    amount: 2,
+    color: "text-orange-500",
+    tooltip: "This question is a bit hard for you",
+  },
+  [weights[2]]: {
+    amount: 3,
+    color: "text-gray-500",
+    tooltip: "You are neutral to this question",
+  },
+  [weights[3]]: {
+    amount: 4,
+    color: "text-green-500",
+    tooltip: "This question is a bit easy for you",
+  },
+  [weights[4]]: {
+    amount: 5,
+    color: "text-blue-500",
+    tooltip: "This question is easy for you",
+  },
+} as const
 
 export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
   const router = useRouter()
@@ -61,6 +98,15 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
 
   const currentQuestion = questions[currentQuestionIndex]
   const currentOptionsLength = currentQuestion.options.length
+
+  const getWeightOption = (weight: number) => {
+    // find the closest weight to the given weight, but only downwards (except if it matches exactly)
+    const closestWeight = weights.reduce((prev, curr) =>
+      Math.abs(curr - weight) < Math.abs(prev - weight) ? curr : prev
+    )
+
+    return weightedDotDistribution[closestWeight]
+  }
 
   const handleOptionClick = (index: number) => {
     if (showAnswer) {
@@ -189,6 +235,35 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
     },
   })
 
+  const getWeightElement = (weight: number) => {
+    const weightOption = getWeightOption(weight)
+
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger>
+            <Badge variant="outline">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <span
+                  // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                  key={i}
+                  className={cn("text-gray-300", {
+                    [weightOption.color]: i <= weightOption.amount - 1,
+                  })}
+                >
+                  •
+                </span>
+              ))}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>
+            You are moderately good at this question
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    )
+  }
+
   return (
     <div>
       <Progress
@@ -197,7 +272,13 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
         postNumber={amountQuestions}
       />
 
-      <div className="mt-8">
+      <div className="mt-6 flex flex-row gap-x-2">
+        {getWeightElement(currentQuestion.weight ?? 0)}
+        {currentQuestion.label && (
+          <Badge variant="outline">{currentQuestion.label}</Badge>
+        )}
+      </div>
+      <div className="mt-2">
         <div className="h-6 w-6 shrink-0 flex items-end float-right top-0">
           {guessMutateIsPending && (
             <Loader2 className="h-5 w-5 animate-spin mt-2 mr-2" />

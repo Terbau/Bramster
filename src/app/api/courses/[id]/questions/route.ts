@@ -1,8 +1,5 @@
 import { authOptions } from "@/lib/auth"
-import {
-  getQuestionsWithOptions,
-  getQuestionsWithOptionsBasedOnHistory,
-} from "@/lib/functions/question"
+import { getQuestionsWithOptions } from "@/lib/functions/question"
 import { getServerSession } from "next-auth"
 import { NextResponse, type NextRequest } from "next/server"
 import type { CourseParams } from "../route"
@@ -25,21 +22,21 @@ export async function GET(request: NextRequest, { params }: CourseParams) {
     return NextResponse.json({ message: "Origin is required" }, { status: 400 })
   }
 
+  let shouldOrderByWeightFirst = false
+  let isRandomOrder = order === "random"
+
   if (order === "worst") {
-    const questionWithOptions = await getQuestionsWithOptionsBasedOnHistory(
-      courseId,
-      origin,
-      session.user.id,
-      limit
-    )
-    return NextResponse.json(questionWithOptions)
+    shouldOrderByWeightFirst = true
+    isRandomOrder = true
   }
 
   const questionsWithOptions = await getQuestionsWithOptions(
     courseId,
     origin,
+    session.user.id,
     limit,
-    order === "random"
+    shouldOrderByWeightFirst,
+    isRandomOrder
   )
   return NextResponse.json(questionsWithOptions)
 }

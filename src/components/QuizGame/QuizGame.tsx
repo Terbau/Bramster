@@ -9,19 +9,14 @@ import {
 } from "react"
 import { Progress } from "../Progress"
 import Latex from "react-latex"
-import { cn, getPartByLocale } from "@/lib/utils"
+import { cn, compareOrigins, getPartByLocale } from "@/lib/utils"
 import { Button } from "../ui/button"
 import { CircleCheck, CircleX, Loader2 } from "lucide-react"
 import { useMutation } from "@tanstack/react-query"
 import type { GameSession, GuessCreate } from "@/types/game"
 import { useRouter } from "next/navigation"
 import { Badge } from "../ui/badge"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../ui/tooltip"
+import { Tooltip } from "../Tooltip"
 
 interface QuizGameProps {
   questions: QuestionWithOptions[]
@@ -239,28 +234,33 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
     const weightOption = getWeightOption(weight)
 
     return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger>
-            <Badge variant="outline">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <span
-                  // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                  key={i}
-                  className={cn("text-gray-300", {
-                    [weightOption.color]: i <= weightOption.amount - 1,
-                  })}
-                >
-                  •
-                </span>
-              ))}
-            </Badge>
-          </TooltipTrigger>
-          <TooltipContent>
-            You are moderately good at this question
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip text={weightOption.tooltip}>
+        <Badge variant="outline">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <span
+              // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+              key={i}
+              className={cn("text-gray-300", {
+                [weightOption.color]: i <= weightOption.amount - 1,
+              })}
+            >
+              •
+            </span>
+          ))}
+        </Badge>
+      </Tooltip>
+    )
+  }
+
+  const getAllOriginsBadge = (allOrigins: string[]) => {
+    allOrigins.sort((a, b) => compareOrigins(a, b))
+    const text = `This question was present in the following exams: ${allOrigins.join(
+      ", "
+    )}`
+    return (
+      <Tooltip text={text}>
+        <Badge variant="outline">Exams: {allOrigins.length}</Badge>
+      </Tooltip>
     )
   }
 
@@ -274,8 +274,11 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
 
       <div className="mt-6 flex flex-row gap-x-2">
         {getWeightElement(currentQuestion.weight ?? 0)}
+        {getAllOriginsBadge(currentQuestion.allOrigins ?? [])}
         {currentQuestion.label && (
-          <Badge variant="outline">{currentQuestion.label}</Badge>
+          <Badge className="ml-auto" variant="outline">
+            {currentQuestion.label}
+          </Badge>
         )}
       </div>
       <div className="mt-2">

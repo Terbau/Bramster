@@ -46,3 +46,16 @@ export const getPartByLocale = (
       return split.at(0)
   }
 }
+
+export const compareOrigins = (a: string, b: string) => {
+  try {
+    const [yearA, semesterA] = a.split(" ")
+    const [yearB, semesterB] = b.split(" ")
+
+    if (yearA === yearB) {
+      return semesterB.localeCompare(semesterA)
+    }
+  } catch (e) {}
+
+  return a.localeCompare(b)
+}

@@ -2,6 +2,7 @@ import type {
   Question,
   QuestionOption,
   QuestionWithOptions,
+  RecurrenceStats,
 } from "@/types/question"
 import { db } from "../db"
 import { sql } from "kysely"
@@ -39,6 +40,10 @@ export const getQuestionsWithOptionsIgnoreWeight = async (
         "questionOption.id"
       )} IS NOT NULL), '[]')`.as("options"),
       sql<number>`0`.as("weight"),
+      sql<RecurrenceStats>`json_build_object(
+        'amount', 0,
+        'origins', '[]'
+      )`.as("recurrenceStats"),
     ])
     .where("courseId", "=", courseId)
     .$if(origin !== "all", (qb) => qb.where("origin", "=", origin))
@@ -62,6 +67,16 @@ export const getQuestionsWithOptions = async (
     .selectFrom("question")
     .selectAll("question")
     .leftJoin("questionOption", "question.id", "questionOption.questionId")
+    .select(({ selectFrom, ref }) =>
+      selectFrom("question as q2")
+        .select(() => [
+          sql<string[]>`COALESCE(json_agg(DISTINCT q2.origin), '[]')`.as(
+            "allOrigins"
+          ),
+        ])
+        .where("q2.question", "=", ref("question.question"))
+        .as("allOrigins")
+    )
     .select(({ selectFrom }) =>
       selectFrom("guess")
         .innerJoin("gameSession", "guess.gameSessionId", "gameSession.id")

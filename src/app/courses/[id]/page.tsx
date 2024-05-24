@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { capitalized } from "@/lib/utils"
+import { capitalized, compareOrigins } from "@/lib/utils"
 import type { CourseOrigin } from "@/types/course"
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
@@ -22,18 +22,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
     queryFn: () =>
       fetch(`/api/courses/${courseId}`).then(async (res) => {
         const data: CourseOrigin[] = await res.json()
-        data.sort((a: CourseOrigin, b: CourseOrigin) => {
-          try {
-            const [yearA, semesterA] = a.origin.split(" ")
-            const [yearB, semesterB] = b.origin.split(" ")
-
-            if (yearA === yearB) {
-              return semesterB.localeCompare(semesterA)
-            }
-          } catch (e) {}
-
-          return a.origin.localeCompare(b.origin)
-        })
+        data.sort((a, b) => compareOrigins(a.origin, b.origin))
 
         // insert at the beginning the total of all questions
         data.splice(0, 0, {

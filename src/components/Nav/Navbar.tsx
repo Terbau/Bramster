@@ -70,7 +70,7 @@ export const Navbar = () => {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Button onClick={() => signIn("auth0")}>Sign in</Button>
+          <Button onClick={() => signIn("google")}>Sign in</Button>
         )}
       </div>
     </div>

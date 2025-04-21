@@ -56,4 +56,6 @@ const TextareaFormReady = React.forwardRef<
   )
 })
 
+TextareaFormReady.displayName = "TextareaFormReady"
+
 export { Textarea, TextareaFormReady }

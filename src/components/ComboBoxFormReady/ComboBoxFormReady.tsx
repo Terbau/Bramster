@@ -31,3 +31,5 @@ export const ComboBoxFormReady = forwardRef<HTMLButtonElement, ComboBoxFormReady
     </div>
   )
 })
+
+ComboBoxFormReady.displayName = "ComboBoxFormReady"

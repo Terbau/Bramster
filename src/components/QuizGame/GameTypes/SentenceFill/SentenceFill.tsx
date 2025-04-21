@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input"
 import type { GameTypeProps } from "../../QuizGame"
 import { cn } from "@/lib/utils"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Icon } from "@iconify/react/dist/iconify.js"
 import Image from "next/image"
 
@@ -52,21 +52,24 @@ export const SentenceFill = ({
     handleAnswer(inputValue)
   }
 
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key === "Enter") {
-      if (showAnswer) {
-        navigateQuiz(true)
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === "Enter") {
+        if (showAnswer) {
+          navigateQuiz(true)
+          return
+        }
+      }
+
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault()
+
+        navigateQuiz(event.key === "ArrowRight")
         return
       }
-    }
-
-    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-      event.preventDefault()
-
-      navigateQuiz(event.key === "ArrowRight")
-      return
-    }
-  }
+    },
+    [navigateQuiz, showAnswer]
+  )
 
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown)

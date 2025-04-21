@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { GameTypeProps } from "../../QuizGame"
 import Image from "next/image"
 import { Draggable } from "@/components/Draggable/Draggable"
@@ -92,21 +92,24 @@ export const ImageDragAndDrop = ({
     }))
   }
 
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key === "Enter") {
-      if (showAnswer) {
-        navigateQuiz(true)
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === "Enter") {
+        if (showAnswer) {
+          navigateQuiz(true)
+          return
+        }
+      }
+
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault()
+
+        navigateQuiz(event.key === "ArrowRight")
         return
       }
-    }
-
-    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-      event.preventDefault()
-
-      navigateQuiz(event.key === "ArrowRight")
-      return
-    }
-  }
+    },
+    [navigateQuiz, showAnswer]
+  )
 
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown)

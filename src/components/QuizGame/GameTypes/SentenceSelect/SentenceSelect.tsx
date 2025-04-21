@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useEffect } from "react"
+import { useCallback, useEffect } from "react"
 import Image from "next/image"
 
 interface SentenceSelectProps extends GameTypeProps {
@@ -45,21 +45,24 @@ export const SentenceSelect = ({
   const selectedText = selectedOption ? selectedOption.content : "Velg"
   const minWidth = Math.max(80, selectedText.length * 10 + 10)
 
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key === "Enter") {
-      if (showAnswer) {
-        navigateQuiz(true)
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === "Enter") {
+        if (showAnswer) {
+          navigateQuiz(true)
+          return
+        }
+      }
+
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault()
+
+        navigateQuiz(event.key === "ArrowRight")
         return
       }
-    }
-
-    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-      event.preventDefault()
-
-      navigateQuiz(event.key === "ArrowRight")
-      return
-    }
-  }
+    },
+    [navigateQuiz, showAnswer]
+  )
 
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown)

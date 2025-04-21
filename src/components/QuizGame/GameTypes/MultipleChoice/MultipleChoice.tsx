@@ -1,5 +1,12 @@
 import { cn, getPartByLocale } from "@/lib/utils"
-import { createRef, type RefObject, useEffect, useRef, useState } from "react"
+import {
+  createRef,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react"
 import Latex from "react-latex"
 import type { GameTypeProps } from "../../QuizGame"
 import { CircleCheck, CircleX } from "lucide-react"
@@ -26,38 +33,41 @@ export const MultipleChoice = ({
     )
   )
 
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key === "Enter") {
-      if (showAnswer) {
-        navigateQuiz(true)
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === "Enter") {
+        if (showAnswer) {
+          navigateQuiz(true)
+          return
+        }
+      }
+
+      if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+        event.preventDefault()
+
+        setCurrentHoveredOptionIndex((prev) =>
+          Math.min(
+            Math.max(prev + (event.key === "ArrowUp" ? -1 : 1), 0),
+            amountOptions - 1
+          )
+        )
         return
       }
-    }
 
-    if (event.key === "ArrowUp" || event.key === "ArrowDown") {
-      event.preventDefault()
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault()
 
-      setCurrentHoveredOptionIndex((prev) =>
-        Math.min(
-          Math.max(prev + (event.key === "ArrowUp" ? -1 : 1), 0),
-          amountOptions - 1
-        )
-      )
-      return
-    }
+        navigateQuiz(event.key === "ArrowRight")
+        return
+      }
 
-    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-      event.preventDefault()
-
-      navigateQuiz(event.key === "ArrowRight")
-      return
-    }
-
-    const index = Number(event.key) - 1
-    if (index >= 0 && index < question.options.length) {
-      setCurrentHoveredOptionIndex(index)
-    }
-  }
+      const index = Number(event.key) - 1
+      if (index >= 0 && index < amountOptions) {
+        setCurrentHoveredOptionIndex(index)
+      }
+    },
+    [amountOptions, navigateQuiz, showAnswer]
+  )
 
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown)

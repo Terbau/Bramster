@@ -167,6 +167,15 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
     [amountQuestions]
   )
 
+  const syncAnswer = (data: AnswerData) => {
+    handleSetLastGuessSyncSuccess(null)
+    addGuessMutate({
+      questionId: currentQuestion.id,
+      answerData: data,
+      gameSessionId: gameSession.id,
+    })
+  }
+
   const handleMultipleChoiceAnswer = useCallback(
     (index: number) => {
       if (showAnswer) {
@@ -190,7 +199,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
         optionId: currentQuestion.options[index].id,
       })
     },
-    [currentQuestionIndex, showAnswer, navigateQuiz, currentQuestion.options]
+    [syncAnswer, currentQuestionIndex, showAnswer, navigateQuiz, currentQuestion.options]
   )
 
   const handleImageDragAndDropAnswer = useCallback(
@@ -221,7 +230,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
 
       syncAnswer({ dragMap: droppedItems, amountCorrect, amountIncorrect })
     },
-    [currentQuestionIndex, showAnswer]
+    [syncAnswer, currentQuestionIndex, showAnswer]
   )
 
   const handleMatrixAnswer = useCallback(
@@ -247,7 +256,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
         optionIds: selectedOptionIds,
       })
     },
-    [currentQuestionIndex, showAnswer]
+    [syncAnswer, currentQuestionIndex, showAnswer]
   )
 
   const handleSentenceFillAnswer = useCallback(
@@ -272,7 +281,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
         content,
       })
     },
-    [currentQuestionIndex, showAnswer]
+    [syncAnswer, currentQuestionIndex, showAnswer]
   )
 
   const handleSentenceSelectAnswer = useCallback(
@@ -297,17 +306,8 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
         optionId,
       })
     },
-    [currentQuestionIndex, showAnswer]
+    [syncAnswer, currentQuestionIndex, showAnswer]
   )
-
-  const syncAnswer = (data: AnswerData) => {
-    handleSetLastGuessSyncSuccess(null)
-    addGuessMutate({
-      questionId: currentQuestion.id,
-      answerData: data,
-      gameSessionId: gameSession.id,
-    })
-  }
 
   const handleSetLastGuessSyncSuccess = (value: boolean | null) => {
     if (showLastGuessSyncSuccess) {

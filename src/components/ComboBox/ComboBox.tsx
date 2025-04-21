@@ -78,3 +78,5 @@ export const ComboBox = forwardRef<HTMLButtonElement, ComboBoxProps>(
     )
   }
 )
+
+ComboBox.displayName = "ComboBox"

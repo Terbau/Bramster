@@ -47,3 +47,5 @@ export const Draggable = forwardRef<HTMLButtonElement, DraggableProps>(
     )
   }
 )
+
+Draggable.displayName = "Draggable"

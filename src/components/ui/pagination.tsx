@@ -2,7 +2,11 @@ import * as React from "react"
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { type ButtonProps, buttonVariants } from "@/components/ui/button"
+import {
+  Button,
+  type ButtonProps,
+  buttonVariants,
+} from "@/components/ui/button"
 import Link from "next/link"
 
 const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (
@@ -60,6 +64,20 @@ const PaginationLink = ({
 )
 PaginationLink.displayName = "PaginationLink"
 
+type PaginationButtonProps = {
+  isActive?: boolean
+} & Pick<ButtonProps, "size"> &
+  React.ComponentProps<typeof Button>
+
+const PaginationButton = ({ isActive, ...props }: PaginationButtonProps) => (
+  <Button
+    aria-current={isActive ? "page" : undefined}
+    variant={isActive ? "outline" : "ghost"}
+    {...props}
+  />
+)
+PaginationButton.displayName = "PaginationButton"
+
 const PaginationPrevious = ({
   className,
   ...props
@@ -76,6 +94,22 @@ const PaginationPrevious = ({
 )
 PaginationPrevious.displayName = "PaginationPrevious"
 
+const PaginationPreviousButton = ({
+  className,
+  ...props
+}: React.ComponentProps<typeof PaginationButton>) => (
+  <PaginationButton
+    aria-label="Go to previous page"
+    size="default"
+    className={cn("gap-1 pl-2.5", className)}
+    {...props}
+  >
+    <ChevronLeft className="h-4 w-4" />
+    <span>Previous</span>
+  </PaginationButton>
+)
+PaginationPreviousButton.displayName = "PaginationPreviousButton"
+
 const PaginationNext = ({
   className,
   ...props
@@ -91,6 +125,22 @@ const PaginationNext = ({
   </PaginationLink>
 )
 PaginationNext.displayName = "PaginationNext"
+
+const PaginationNextButton = ({
+  className,
+  ...props
+}: React.ComponentProps<typeof PaginationButton>) => (
+  <PaginationButton
+    aria-label="Go to next page"
+    size="default"
+    className={cn("gap-1 pr-2.5", className)}
+    {...props}
+  >
+    <span>Next</span>
+    <ChevronRight className="h-4 w-4" />
+  </PaginationButton>
+)
+PaginationNextButton.displayName = "PaginationNextButton"
 
 const PaginationEllipsis = ({
   className,
@@ -113,6 +163,9 @@ export {
   PaginationEllipsis,
   PaginationItem,
   PaginationLink,
+  PaginationButton,
   PaginationNext,
+  PaginationNextButton,
   PaginationPrevious,
+  PaginationPreviousButton,
 }

@@ -14,7 +14,7 @@ interface TooltipProps {
 export const Tooltip: FC<TooltipProps> = ({ text, children }) => {
   return (
     <TooltipProvider>
-      <OriginalTooltip>
+      <OriginalTooltip >
         <TooltipTrigger>{children}</TooltipTrigger>
         <TooltipContent>{text}</TooltipContent>
       </OriginalTooltip>

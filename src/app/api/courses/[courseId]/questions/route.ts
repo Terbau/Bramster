@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from "next/server"
 import type { CourseParams } from "../route"
 
 export async function GET(request: NextRequest, { params }: CourseParams) {
-  const courseId = params.id
+  const courseId = params.courseId
 
   const session = await getServerSession(authOptions)
   if (!session) {

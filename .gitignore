@@ -39,3 +39,5 @@ next-env.d.ts
 tools/course-updator/courses
 tools/chat-course-updator/courses
 .vscode
+
+*storybook.log

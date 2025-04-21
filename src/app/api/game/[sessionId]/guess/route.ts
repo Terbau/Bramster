@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth"
 import { NextResponse, type NextRequest } from "next/server"
 import { addGuess, getGameSession, getGuess } from "@/lib/functions/game"
 import type { GameSessionParams } from "../route"
-import type { GuessCreate } from "@/types/game"
+import { GuessCreateSchema } from "@/types/game"
 
 export async function POST(
   request: NextRequest,
@@ -11,15 +11,8 @@ export async function POST(
 ) {
   const gameSessionId = params.sessionId
 
-  const body: Partial<GuessCreate> = await request.json()
-  const { questionId, optionId } = body
-
-  if (!questionId || !optionId) {
-    return NextResponse.json(
-      { message: "Question and option are required" },
-      { status: 400 }
-    )
-  }
+  const body = await request.json()
+  const data = GuessCreateSchema.parse(body)
 
   const session = await getServerSession(authOptions)
   if (!session) {
@@ -45,7 +38,7 @@ export async function POST(
     )
   }
 
-  const existingGuess = await getGuess(gameSessionId, questionId)
+  const existingGuess = await getGuess(gameSessionId, data.questionId)
 
   if (existingGuess) {
     return NextResponse.json(
@@ -54,11 +47,7 @@ export async function POST(
     )
   }
 
-  const guess = await addGuess({
-    gameSessionId,
-    questionId,
-    optionId,
-  })
+  const guess = await addGuess(data)
 
   return NextResponse.json(guess)
 }

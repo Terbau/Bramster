@@ -1,40 +1,51 @@
-import type { FC } from "react"
+import type { ComponentProps, FC } from "react"
 import {
   Pagination as OriginalPagination,
+  PaginationButton,
   PaginationContent,
   PaginationEllipsis,
   PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
+  PaginationNextButton,
+  PaginationPreviousButton,
 } from "../ui/pagination"
 import { cn } from "@/lib/utils"
 
-interface PaginationProps {
+interface PaginationProps extends ComponentProps<"nav"> {
   page: number
   pageSize: number
   totalPages: number
-  className?: string
+  amountShowOnLeft?: number
+  amountShowOnRight?: number
+  onPageChange?: (page: number) => void
 }
 
 export const Pagination: FC<PaginationProps> = ({
   page,
   pageSize,
   totalPages,
-  className,
+  amountShowOnLeft = 1,
+  amountShowOnRight = 1,
+  onPageChange,
+  ...props
 }) => {
-  const fixedPageComparison =
-    totalPages > 2 && page < 1 ? totalPages - 1 : totalPages
+  const pageNums = Array.from({ length: totalPages }, (_, i) => i).filter(
+    (pageNum) =>
+      pageNum <= page + amountShowOnRight &&
+      pageNum >= page - amountShowOnLeft
+  )
+  const hasLeftEllipsis = pageNums[0] > 0
+  const hasRightEllipsis = pageNums[pageNums.length - 1] < totalPages
 
   const paginationPreviousDisabled = page <= 0
   const paginationNextDisabled = page >= totalPages - 1
 
   return (
-    <OriginalPagination className={className}>
+    <OriginalPagination {...props}>
       <PaginationContent>
         <PaginationItem>
-          <PaginationPrevious
-            href={`?page=${page - 1}&pageSize=${pageSize}`}
+          <PaginationPreviousButton
+            onClick={() => onPageChange?.(page - 1)}
+            disabled={paginationPreviousDisabled}
             aria-disabled={paginationPreviousDisabled}
             tabIndex={paginationPreviousDisabled ? -1 : 0}
             className={cn({
@@ -43,40 +54,32 @@ export const Pagination: FC<PaginationProps> = ({
             })}
           />
         </PaginationItem>
-        {page > 1 && (
+        {hasLeftEllipsis && (
           <PaginationItem>
             <PaginationEllipsis />
           </PaginationItem>
         )}
-        {Array.from({
-          length:
-            page > 0
-              ? Math.max(Math.min(fixedPageComparison, 3), 1)
-              : Math.max(Math.min(fixedPageComparison, 2), 1),
-        }).map((_, index) => {
-          const actualIndex = page - (page > 0 ? 1 : 0) + index
-
-          return (
-            <PaginationItem key={actualIndex}>
-              <PaginationLink
-                href={`?page=${actualIndex}&pageSize=${pageSize}`}
-                isActive={actualIndex === page}
-              >
-                {actualIndex + 1}
-              </PaginationLink>
-            </PaginationItem>
-          )
-        })}
-        {page < totalPages - 2 && (
+        {pageNums.map((pageNum) => (
+          <PaginationItem key={pageNum}>
+          <PaginationButton
+            onClick={() => onPageChange?.(pageNum)}
+            isActive={pageNum === page}
+          >
+            {pageNum + 1}
+          </PaginationButton>
+        </PaginationItem>
+        ))}
+        {hasRightEllipsis && (
           <PaginationItem>
             <PaginationEllipsis />
           </PaginationItem>
         )}
 
         <PaginationItem>
-          <PaginationNext
-            href={`?page=${page + 1}&pageSize=${pageSize}`}
+          <PaginationNextButton
             aria-disabled={paginationNextDisabled}
+            disabled={paginationNextDisabled}
+            onClick={() => onPageChange?.(page + 1)}
             tabIndex={paginationNextDisabled ? -1 : 0}
             className={cn({
               "text-gray-400 hover:text-gray-400 hover:border-none hover:bg-red":

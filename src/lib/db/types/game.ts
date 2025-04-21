@@ -15,6 +15,7 @@ export interface Guess {
   id: Generated<string>
   createdAt: Generated<Date>
   questionId: string
-  optionId: string
+  // optionId: string
   gameSessionId: string
+  answerData: unknown
 }

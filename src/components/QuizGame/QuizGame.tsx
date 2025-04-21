@@ -1,22 +1,58 @@
 import type { QuestionWithOptions } from "@/types/question"
-import {
-  type RefObject,
-  useRef,
-  useState,
-  type FC,
-  createRef,
-  useEffect,
-} from "react"
+import { useCallback, useMemo, useState, type FC } from "react"
 import { Progress } from "../Progress"
 import Latex from "react-latex"
 import { cn, compareOrigins, getPartByLocale } from "@/lib/utils"
 import { Button } from "../ui/button"
 import { CircleCheck, CircleX, Loader2 } from "lucide-react"
 import { useMutation } from "@tanstack/react-query"
-import type { GameSession, GuessCreate } from "@/types/game"
+import type { AnswerData, GameSession, GuessCreate } from "@/types/game"
 import { useRouter } from "next/navigation"
 import { Badge } from "../ui/badge"
 import { Tooltip } from "../Tooltip"
+import { ImageDragAndDrop, MultipleChoice } from "./GameTypes"
+import type { DroppedItems } from "./GameTypes/ImageDragAndDrop/ImageDragAndDrop"
+import { Matrix } from "./GameTypes/Matrix/Matrix"
+import { SentenceFill } from "./GameTypes/SentenceFill/SentenceFill"
+import { SentenceSelect } from "./GameTypes/SentenceSelect/SentenceSelect"
+
+export interface GameTypeProps {
+  question: QuestionWithOptions
+  showAnswer: boolean
+  navigateQuiz: (isNext: boolean) => void
+}
+
+interface QuestionStateBase {
+  showAnswer: boolean
+  hasAnswered: boolean
+}
+
+interface MultipleChoiceQuestionState extends QuestionStateBase {
+  answeredIndex: number
+}
+
+interface ImageDragAndDropQuestionState extends QuestionStateBase {
+  droppedItems: DroppedItems
+}
+
+interface MatrixQuestionState extends QuestionStateBase {
+  selectedOptionIds: string[]
+}
+
+interface SentenceFillQuestionState extends QuestionStateBase {
+  answeredContent: string
+}
+
+interface SentenceSelectQuestionState extends QuestionStateBase {
+  answeredOptionId: string
+}
+
+type QuestionState =
+  | MultipleChoiceQuestionState
+  | ImageDragAndDropQuestionState
+  | MatrixQuestionState
+  | SentenceFillQuestionState
+  | SentenceSelectQuestionState
 
 interface QuizGameProps {
   questions: QuestionWithOptions[]
@@ -60,39 +96,57 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
   >(null)
   let showLastGuessSyncSuccess: NodeJS.Timeout | null = null
 
-  // Find the question with the most options
-  const maxOptions = questions.reduce((max, question) => {
-    return Math.max(max, question.options.length)
-  }, 0)
-
-  const ref = useRef<RefObject<HTMLButtonElement>[]>(
-    Array.from({ length: maxOptions }).map(() => createRef<HTMLButtonElement>())
-  )
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [currentHoveredOptionIndex, setCurrentHoveredOptionIndex] = useState(-1)
   const [syncedCount, setSyncedCount] = useState(0)
-  const [questionStates, setQuestionStates] = useState<
-    { showAnswer: boolean; answeredIndex: number }[]
-  >(
-    questions.map(() => ({
-      showAnswer: false,
-      answeredIndex: -1,
-    }))
+  const [questionStates, setQuestionStates] = useState<QuestionState[]>(
+    questions.map((q) => {
+      switch (q.type) {
+        case "MULTIPLE_CHOICE":
+          return {
+            showAnswer: false,
+            answeredIndex: -1,
+          } as MultipleChoiceQuestionState
+        case "MATRIX":
+          return {
+            showAnswer: false,
+            selectedOptionIds: [] as string[],
+          } as MatrixQuestionState
+        case "SENTENCE_FILL":
+          return {
+            showAnswer: false,
+            answeredContent: "",
+          } as SentenceFillQuestionState
+        case "SENTENCE_SELECT":
+          return {
+            showAnswer: false,
+            answeredOptionId: "",
+          } as SentenceSelectQuestionState
+        case "IMAGE_DRAG_AND_DROP":
+          return {
+            showAnswer: false,
+            droppedItems: {},
+          } as ImageDragAndDropQuestionState
+        default:
+          return {
+            showAnswer: false,
+            answeredIndex: -1,
+          } as MultipleChoiceQuestionState
+      }
+    })
   )
 
   const showAnswer = questionStates[currentQuestionIndex].showAnswer
-  const answeredIndex = questionStates[currentQuestionIndex].answeredIndex
+  const currentQuestionState = questionStates[currentQuestionIndex]
 
   const amountQuestionsDone = currentQuestionIndex + 1
   const amountQuestions = questions.length
   const amountQuestionsAnswered = questionStates.filter(
-    (questionState) => questionState.answeredIndex !== -1
+    (questionState) => questionState.hasAnswered
   ).length
 
   const progress = (amountQuestionsAnswered / amountQuestions) * 100
 
   const currentQuestion = questions[currentQuestionIndex]
-  const currentOptionsLength = currentQuestion.options.length
 
   const getWeightOption = (weight: number) => {
     // find the closest weight to the given weight, but only downwards (except if it matches exactly)
@@ -103,71 +157,156 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
     return weightedDotDistribution[closestWeight]
   }
 
-  const handleOptionClick = (index: number) => {
-    if (showAnswer) {
-      navigateQuiz(true)
-      return
-    }
+  const navigateQuiz = useCallback(
+    (forward = true) => {
+      // setCurrentHoveredOptionIndex(-1)
+      setCurrentQuestionIndex((prev) =>
+        Math.min(Math.max(prev + (forward ? 1 : -1), 0), amountQuestions - 1)
+      )
+    },
+    [amountQuestions]
+  )
 
-    setQuestionStates((prev) => {
-      const newQuestionStates = [...prev]
-      newQuestionStates[currentQuestionIndex].showAnswer = true
-      newQuestionStates[currentQuestionIndex].answeredIndex = index
-      return newQuestionStates
-    })
-
-    handleSetLastGuessSyncSuccess(null)
-    addGuessMutate({
-      questionId: currentQuestion.id,
-      optionId: currentQuestion.options[index].id,
-      gameSessionId: gameSession.id,
-    })
-
-    if (currentQuestion.options[index].correct) {
-      console.log("Correct!")
-    } else {
-      console.log("Incorrect!")
-    }
-  }
-
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key === "Enter") {
+  const handleMultipleChoiceAnswer = useCallback(
+    (index: number) => {
       if (showAnswer) {
         navigateQuiz(true)
         return
       }
-    }
 
-    if (event.key === "ArrowUp" || event.key === "ArrowDown") {
-      event.preventDefault()
+      setQuestionStates((prev) => {
+        const newQuestionStates = [...prev]
+        const state = newQuestionStates[
+          currentQuestionIndex
+        ] as MultipleChoiceQuestionState
+        state.showAnswer = true
+        state.hasAnswered = true
+        state.answeredIndex = index
 
-      setCurrentHoveredOptionIndex((prev) =>
-        Math.min(
-          Math.max(prev + (event.key === "ArrowUp" ? -1 : 1), 0),
-          currentOptionsLength - 1
-        )
-      )
-      return
-    }
+        return newQuestionStates
+      })
 
-    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-      event.preventDefault()
+      syncAnswer({
+        optionId: currentQuestion.options[index].id,
+      })
+    },
+    [currentQuestionIndex, showAnswer, navigateQuiz, currentQuestion.options]
+  )
 
-      navigateQuiz(event.key === "ArrowRight")
-      return
-    }
+  const handleImageDragAndDropAnswer = useCallback(
+    (droppedItems: DroppedItems) => {
+      if (showAnswer) {
+        // navigateQuiz(true)
+        return
+      }
 
-    const index = Number(event.key) - 1
-    if (index >= 0 && index < currentQuestion.options.length) {
-      setCurrentHoveredOptionIndex(index)
-    }
-  }
+      setQuestionStates((prev) => {
+        const newQuestionStates = [...prev]
+        const state = newQuestionStates[
+          currentQuestionIndex
+        ] as ImageDragAndDropQuestionState
+        state.showAnswer = true
+        state.hasAnswered = true
+        state.droppedItems = droppedItems
 
-  const navigateQuiz = (forward = true) => {
-    setCurrentHoveredOptionIndex(-1)
-    setCurrentQuestionIndex((prev) =>
-      Math.min(Math.max(prev + (forward ? 1 : -1), 0), amountQuestions - 1)
-    )
+        return newQuestionStates
+      })
+
+      // Find this by comparing the key and value of the dropped items
+      const amountCorrect = Object.entries(droppedItems).filter(
+        ([key, value]) => key === value
+      ).length
+      const amountIncorrect =
+        Object.entries(droppedItems).length - amountCorrect
+
+      syncAnswer({ dragMap: droppedItems, amountCorrect, amountIncorrect })
+    },
+    [currentQuestionIndex, showAnswer]
+  )
+
+  const handleMatrixAnswer = useCallback(
+    (selectedOptionIds: string[]) => {
+      if (showAnswer) {
+        // navigateQuiz(true)
+        return
+      }
+
+      setQuestionStates((prev) => {
+        const newQuestionStates = [...prev]
+        const state = newQuestionStates[
+          currentQuestionIndex
+        ] as MatrixQuestionState
+        state.showAnswer = true
+        state.hasAnswered = true
+        state.selectedOptionIds = selectedOptionIds
+
+        return newQuestionStates
+      })
+
+      syncAnswer({
+        optionIds: selectedOptionIds,
+      })
+    },
+    [currentQuestionIndex, showAnswer]
+  )
+
+  const handleSentenceFillAnswer = useCallback(
+    (content: string) => {
+      if (showAnswer) {
+        // navigateQuiz(true)
+        return
+      }
+
+      setQuestionStates((prev) => {
+        const newQuestionStates = [...prev]
+        const state = newQuestionStates[
+          currentQuestionIndex
+        ] as SentenceFillQuestionState
+        state.showAnswer = true
+        state.hasAnswered = true
+        state.answeredContent = content
+
+        return newQuestionStates
+      })
+      syncAnswer({
+        content,
+      })
+    },
+    [currentQuestionIndex, showAnswer]
+  )
+
+  const handleSentenceSelectAnswer = useCallback(
+    (optionId: string) => {
+      if (showAnswer) {
+        // navigateQuiz(true)
+        return
+      }
+
+      setQuestionStates((prev) => {
+        const newQuestionStates = [...prev]
+        const state = newQuestionStates[
+          currentQuestionIndex
+        ] as SentenceSelectQuestionState
+        state.showAnswer = true
+        state.hasAnswered = true
+        state.answeredOptionId = optionId
+
+        return newQuestionStates
+      })
+      syncAnswer({
+        optionId,
+      })
+    },
+    [currentQuestionIndex, showAnswer]
+  )
+
+  const syncAnswer = (data: AnswerData) => {
+    handleSetLastGuessSyncSuccess(null)
+    addGuessMutate({
+      questionId: currentQuestion.id,
+      answerData: data,
+      gameSessionId: gameSession.id,
+    })
   }
 
   const handleSetLastGuessSyncSuccess = (value: boolean | null) => {
@@ -183,21 +322,6 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
 
     setLastGuessSyncSuccess(value)
   }
-
-  useEffect(() => {
-    if (currentHoveredOptionIndex !== -1) {
-      const index = currentHoveredOptionIndex
-      if (index >= 0 && index < currentOptionsLength) {
-        const currentRef = ref.current[index].current
-        currentRef?.focus()
-      }
-    }
-  }, [currentHoveredOptionIndex, currentOptionsLength])
-
-  useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown)
-    return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [handleKeyDown])
 
   const { mutate: addGuessMutate, isPending: guessMutateIsPending } =
     useMutation({
@@ -264,6 +388,87 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
     )
   }
 
+  const currentQuestionElement = useMemo(() => {
+    switch (currentQuestion.type) {
+      case "MULTIPLE_CHOICE":
+        return (
+          <MultipleChoice
+            question={currentQuestion}
+            showAnswer={showAnswer}
+            navigateQuiz={navigateQuiz}
+            handleAnswer={handleMultipleChoiceAnswer}
+            answeredIndex={
+              (currentQuestionState as MultipleChoiceQuestionState)
+                .answeredIndex
+            }
+          />
+        )
+      case "MATRIX":
+        return (
+          <Matrix
+            question={currentQuestion}
+            showAnswer={showAnswer}
+            navigateQuiz={navigateQuiz}
+            handleAnswer={handleMatrixAnswer}
+            selectedOptionIds={
+              (currentQuestionState as MatrixQuestionState).selectedOptionIds
+            }
+          />
+        )
+      case "SENTENCE_FILL":
+        return (
+          <SentenceFill
+            question={currentQuestion}
+            showAnswer={showAnswer}
+            navigateQuiz={navigateQuiz}
+            handleAnswer={handleSentenceFillAnswer}
+            answeredContent={
+              (currentQuestionState as SentenceFillQuestionState)
+                .answeredContent
+            }
+          />
+        )
+      case "SENTENCE_SELECT":
+        return (
+          <SentenceSelect
+            question={currentQuestion}
+            showAnswer={showAnswer}
+            navigateQuiz={navigateQuiz}
+            handleAnswer={handleSentenceSelectAnswer}
+            answeredOptionId={
+              (currentQuestionState as SentenceSelectQuestionState)
+                .answeredOptionId
+            }
+          />
+        )
+      case "IMAGE_DRAG_AND_DROP":
+        return (
+          <ImageDragAndDrop
+            question={currentQuestion}
+            showAnswer={showAnswer}
+            navigateQuiz={navigateQuiz}
+            handleAnswer={handleImageDragAndDropAnswer}
+            answeredDroppedItems={
+              (currentQuestionState as ImageDragAndDropQuestionState)
+                .droppedItems
+            }
+          />
+        )
+      default:
+        return null
+    }
+  }, [
+    currentQuestion,
+    showAnswer,
+    navigateQuiz,
+    handleMultipleChoiceAnswer,
+    handleImageDragAndDropAnswer,
+    handleMatrixAnswer,
+    handleSentenceFillAnswer,
+    handleSentenceSelectAnswer,
+    currentQuestionState,
+  ])
+
   return (
     <div>
       <Progress
@@ -275,56 +480,27 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
       <div className="mt-6 flex flex-row gap-x-2">
         {getWeightElement(currentQuestion.weight ?? 0)}
         {getAllOriginsBadge(currentQuestion.allOrigins ?? [])}
-        {currentQuestion.label && (
-          <Badge className="ml-auto" variant="outline">
-            {currentQuestion.label}
-          </Badge>
-        )}
-      </div>
-      <div className="mt-2">
-        <div className="h-6 w-6 shrink-0 flex items-end float-right top-0">
-          {guessMutateIsPending && (
-            <Loader2 className="h-5 w-5 animate-spin mt-2 mr-2" />
-          )}
+        <div className="flex flex-row gap-x-2 ml-auto items-center">
+          {guessMutateIsPending && <Loader2 className="h-5 w-5 animate-spin" />}
           {lastGuessSyncSuccess !== null &&
             (lastGuessSyncSuccess ? (
-              <CircleCheck className="h-5 w-5 mt-2 mr-2" />
+              <CircleCheck className="h-5 w-5" />
             ) : (
-              <CircleX className="text-red-500 h-5 w-5 mt-2 mr-2" />
+              <CircleX className="text-red-500 h-5 w-5" />
             ))}
+          {currentQuestion.label && (
+            <Badge variant="outline">{currentQuestion.label}</Badge>
+          )}
         </div>
+      </div>
+      <div className="mt-2">
         <h3 className="text-2xl font-semibold">
-          <Latex>{getPartByLocale(currentQuestion.question, "nb_NO")}</Latex>
+          <Latex>{getPartByLocale(currentQuestion.content, "nb_NO")}</Latex>
         </h3>
       </div>
-      <div className="mt-4 flex flex-col gap-y-3">
-        {currentQuestion.options.map((option, index) => (
-          <button
-            ref={ref.current[index]}
-            type="button"
-            key={option.id}
-            onClick={() => handleOptionClick(index)}
-            className={cn(
-              "py-3 px-4 border border-gray-300 rounded-lg flex flex-row justify-between items-center",
-              {
-                "bg-red-300": showAnswer && !option.correct,
-                "bg-green-300": showAnswer && option.correct,
-                "hover:bg-gray-100": !showAnswer,
-              }
-            )}
-          >
-            <span className="text-left">
-              <Latex>{getPartByLocale(option.option, "nb_NO")}</Latex>
-            </span>
-            {answeredIndex === index &&
-              (option.correct ? (
-                <CircleCheck size={26} className="text-green-500" />
-              ) : (
-                <CircleX size={26} className="text-red-500" />
-              ))}
-          </button>
-        ))}
-      </div>
+
+      {currentQuestionElement}
+
       <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-between">
         <div className="grid grid-cols-2 sm:flex sm:flex-row gap-x-2 w-full">
           <Button

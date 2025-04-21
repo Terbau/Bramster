@@ -29,7 +29,7 @@ program
         const data = JSON.parse(rawData)
 
         for (const questionData of data) {
-          const question = questionData.question
+          const content: string = questionData.content
           // file without extension
           const origin = file.split(".")[0]
           const options = questionData.options
@@ -37,17 +37,23 @@ program
           questions.push({
             courseId: course,
             label: null,
-            question,
+            content,
             origin,
+            subContent: null,
+            type: questionData.type ?? "MULTIPLE_CHOICE",
+            imagePath: questionData.imagePath ?? null,
+            imageWidth: questionData.imageWidth ?? null,
+            imageHeight: questionData.imageHeight ?? null,
+            draggableWidth: questionData.draggableWidth ?? null,
           })
           const questionOptions = options.map(
-            (option: { answer: string; text: string, correct: boolean }) => ({
+            (option: { answer: string; text: string; correct: boolean }) => ({
               questionId: "-1", // not yet found
-              option: option.answer ?? option.text,
+              content: option.answer ?? option.text,
               correct: option.correct,
             })
           )
-          optionsMap.set(`${question}-${origin}`, questionOptions)
+          optionsMap.set(`${content}-${origin}`, questionOptions)
         }
       }
     }
@@ -67,11 +73,11 @@ program
     const returns = await db
       .insertInto("question")
       .values(questions)
-      .returning(["id", "question", "origin"])
+      .returning(["id", "content", "origin"])
       .execute()
 
     const returnQuestionsMap = new Map(
-      returns.map((q) => [`${q.question}-${q.origin}`, q.id])
+      returns.map((q) => [`${q.content}-${q.origin}`, q.id])
     )
 
     const options = Array.from(optionsMap.entries()).flatMap(

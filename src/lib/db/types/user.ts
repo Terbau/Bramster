@@ -7,4 +7,5 @@ export interface User {
   email: string
   name: string
   authProvider: string
+  admin: Generated<boolean>
 }

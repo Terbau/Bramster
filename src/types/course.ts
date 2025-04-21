@@ -1,29 +1,22 @@
 import { z } from "zod"
 
-export const Course = z.object({
+export const CourseSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
   id: z.string(),
   name: z.string(),
 })
 
-export type Course = z.infer<typeof Course>
+export type Course = z.infer<typeof CourseSchema>
 
-export const CourseCreate = Course.omit({ createdAt: true, updatedAt: true })
+export const CourseCreateSchema = CourseSchema.omit({ createdAt: true, updatedAt: true })
 
-export type CourseCreate = z.infer<typeof CourseCreate>
+export type CourseCreate = z.infer<typeof CourseCreateSchema>
 
-export const ExtendedCourse = Course.extend({
+export const ExtendedCourseSchema = CourseSchema.extend({
   totalOrigins: z.number(),
   totalQuestions: z.number(),
 })
 
-export type ExtendedCourse = z.infer<typeof ExtendedCourse>
+export type ExtendedCourse = z.infer<typeof ExtendedCourseSchema>
 
-export const CourseOrigin = z.object({
-  origin: z.string(),
-  totalQuestions: z.number(),
-  label: z.string().nullable(),
-})
-
-export type CourseOrigin = z.infer<typeof CourseOrigin>

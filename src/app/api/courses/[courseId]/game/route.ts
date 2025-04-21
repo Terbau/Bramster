@@ -6,9 +6,9 @@ import {
 } from "@/lib/functions/question"
 import { getServerSession } from "next-auth"
 import { NextResponse, type NextRequest } from "next/server"
-import type { CourseParams } from "../route"
 import type { GameSession } from "@/types/game"
 import type { QuestionWithOptions } from "@/types/question"
+import type { CourseParams } from "../route"
 
 interface PostRequestData {
   origin: string
@@ -17,7 +17,7 @@ interface PostRequestData {
 }
 
 export async function POST(request: NextRequest, { params }: CourseParams) {
-  const courseId = params.id
+  const courseId = params.courseId
 
   const session = await getServerSession(authOptions)
   if (!session) {

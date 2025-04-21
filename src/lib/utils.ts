@@ -1,6 +1,12 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 import moment from "moment"
+import {
+  ZodFirstPartyTypeKind,
+  type z,
+  type ZodObject,
+  type ZodTypeAny,
+} from "zod"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -58,4 +64,50 @@ export const compareOrigins = (a: string, b: string) => {
   } catch (e) {}
 
   return a.localeCompare(b)
+}
+
+export const shuffle = <T>(array: T[]) => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[array[i], array[j]] = [array[j], array[i]]
+  }
+  return array
+}
+
+export const isKey = <T extends ZodObject<Record<string, ZodTypeAny>>>(
+  schema: T,
+  key: string
+): key is string & keyof z.infer<T> => {
+  return key in schema.shape
+}
+
+export const parseKey = <
+  T extends ZodObject<Record<string, ZodTypeAny>>,
+  K extends string,
+>(
+  schema: T,
+  key: K
+): K & keyof z.infer<T> => {
+  if (!(key in schema.shape)) {
+    throw new Error(`Key ${key} does not exist in schema`)
+  }
+
+  return key as K & keyof z.infer<T>
+}
+
+export function isFieldRequired<
+  // biome-ignore lint/suspicious/noExplicitAny: <needed>
+  T extends ZodObject<any>,
+  K extends keyof T["shape"],
+>(schema: T, key: K): boolean {
+  const field = schema.shape[key] as ZodTypeAny
+
+  return (
+    field._def.typeName !== ZodFirstPartyTypeKind.ZodOptional &&
+    field._def.typeName !== ZodFirstPartyTypeKind.ZodDefault
+  )
+}
+
+export function isSubset<T>(subset: Set<T>, superset: Set<T>): boolean {
+  return Array.from(subset).every((elem) => superset.has(elem))
 }

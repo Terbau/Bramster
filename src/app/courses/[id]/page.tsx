@@ -10,18 +10,18 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { capitalized, compareOrigins } from "@/lib/utils"
-import type { CourseOrigin } from "@/types/course"
+import type { OriginDetails } from "@/types/question"
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
 
 export default function CoursePage({ params }: { params: { id: string } }) {
   const courseId = params.id
 
-  const { data: courseOrigins, isLoading } = useQuery<CourseOrigin[]>({
+  const { data: courseOrigins, isLoading } = useQuery<OriginDetails[]>({
     queryKey: ["courseOrigins", courseId],
     queryFn: () =>
-      fetch(`/api/courses/${courseId}`).then(async (res) => {
-        const data: CourseOrigin[] = await res.json()
+      fetch(`/api/courses/${courseId}/origins`).then(async (res) => {
+        const data: OriginDetails[] = await res.json()
         data.sort((a, b) => compareOrigins(a.origin, b.origin))
 
         // insert at the beginning the total of all questions

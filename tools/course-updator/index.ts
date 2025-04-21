@@ -13,8 +13,7 @@ program
   .name("update-courses")
   .description("CLI to update courses")
   .action(async () => {
-    const questions: Omit<Question, "id" | "createdAt" | "updatedAt">[] =
-      []
+    const questions: Omit<Question, "id" | "createdAt" | "updatedAt">[] = []
     const optionsMap: Map<
       string,
       Omit<QuestionOption, "id" | "createdAt" | "updatedAt">[]
@@ -51,7 +50,7 @@ program
 
             const fields = obj?.documentChange?.document?.fields
 
-            const question = fields?.question?.stringValue
+            const content = fields?.question?.stringValue
             const exam = fields?.exam?.stringValue
             const options = fields?.options?.arrayValue?.values
             const correctOptions = fields?.answers?.arrayValue?.values.map(
@@ -59,15 +58,21 @@ program
                 Number.parseInt(option.integerValue)
             )
 
-            if (!question || !exam || !options) {
+            if (!content || !exam || !options) {
               continue
             }
 
             questions.push({
               courseId: course,
-              question,
+              content,
               label: null,
               origin: exam,
+              subContent: null,
+              type: "MULTIPLE_CHOICE",
+              imagePath: null,
+              imageWidth: null,
+              imageHeight: null,
+              draggableWidth: null,
             })
             const questionOptions = options.map(
               (option: { stringValue: string }, index: number) => ({
@@ -76,7 +81,7 @@ program
                 correct: correctOptions.includes(index),
               })
             )
-            optionsMap.set(`${question}-${exam}`, questionOptions)
+            optionsMap.set(`${content}-${exam}`, questionOptions)
           }
         }
       }
@@ -97,11 +102,11 @@ program
     const returns = await db
       .insertInto("question")
       .values(questions)
-      .returning(["id", "question", "origin"])
+      .returning(["id", "content", "origin"])
       .execute()
 
     const returnQuestionsMap = new Map(
-      returns.map((q) => [`${q.question}-${q.origin}`, q.id])
+      returns.map((q) => [`${q.content}-${q.origin}`, q.id])
     )
 
     const options = Array.from(optionsMap.entries()).flatMap(

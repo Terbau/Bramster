@@ -11,8 +11,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { asReadbleTime, capitalized, getPartByLocale } from "@/lib/utils"
-import type { ExtendedGameSessionWithResults } from "@/types/game"
+import {
+  asReadbleTime,
+  capitalized,
+  getPartByLocale,
+  isSubset,
+} from "@/lib/utils"
+import type {
+  ExtendedGameSessionWithResults,
+  Guess,
+  ImageDragAndDropAnswer,
+  MatrixAnswer,
+  MultipleChoiceAnswer,
+  SentenceFillAnswer,
+  SentenceSelectAnswer,
+} from "@/types/game"
+import type { QuestionWithOptions } from "@/types/question"
 import { useQuery } from "@tanstack/react-query"
 import { CircleCheck, CircleX } from "lucide-react"
 import { useSession } from "next-auth/react"
@@ -52,13 +66,45 @@ export default function GameResultsPage({
     fields.push({ label: "Finished at", value: asReadbleTime(data.finishedAt) })
   }
 
+  const findOption = (question: QuestionWithOptions, guess: Guess) => {
+    switch (question.type) {
+      case "MULTIPLE_CHOICE":
+        return question.options.find(
+          (option) =>
+            option.id === (guess.answerData as MultipleChoiceAnswer).optionId
+        )
+      case "MATRIX":
+        return question.options.find((option) =>
+          (guess.answerData as MatrixAnswer).optionIds.includes(option.id)
+        )
+      case "SENTENCE_FILL":
+        return question.options.find(
+          (option) =>
+            option.content.toLowerCase() ===
+            (guess.answerData as SentenceFillAnswer).content.toLowerCase()
+        )
+      case "SENTENCE_SELECT":
+        return question.options.find(
+          (option) =>
+            option.id === (guess.answerData as SentenceSelectAnswer).optionId
+        )
+      case "IMAGE_DRAG_AND_DROP":
+        return question.options.find((option) => {
+          const dragMap = (guess.answerData as ImageDragAndDropAnswer).dragMap
+          return Object.values(dragMap).includes(option.id)
+        })
+      default:
+        return undefined
+    }
+  }
+
   return (
     <div className="flex flex-col gap-y-4">
       <Breadcrumb
         links={[
           { label: "Courses", href: "/courses" },
           {
-            label: data.course.id.toUpperCase(),
+            label: data.course.id,
             href: `/courses/${data.course.id}`,
           },
           {
@@ -98,36 +144,105 @@ export default function GameResultsPage({
         <TableBody>
           {data.questions.map((question) => {
             const guess = answersMap.get(question.id)
-            const guessOption = question.options.find(
-              (option) => option.id === guess?.optionId
-            )
-            const correctOption = question.options.find(
-              (option) => option.correct
-            )
 
-            if (
-              guess === undefined ||
-              guessOption === undefined ||
-              correctOption === undefined
-            ) {
+            if (!guess) {
               return null
+            }
+
+            let yourGuessText = ""
+            let correctOptionText = ""
+            let wasCorrect = false
+
+            switch (question.type) {
+              case "MULTIPLE_CHOICE": {
+                const guessOption = findOption(question, guess)
+                const correctOption = question.options.find(
+                  (option) => option.correct
+                )
+                yourGuessText = guessOption?.content ?? ""
+                correctOptionText = correctOption?.content ?? ""
+                wasCorrect = guessOption?.correct ?? false
+                break
+              }
+              case "MATRIX": {
+                const guessSet = new Set(
+                  (guess.answerData as MatrixAnswer).optionIds
+                )
+                const correctSet = new Set(
+                  question.options
+                    .filter((option) => option.correct)
+                    .map((option) => option.id)
+                )
+                const exclusiveToGuess = new Set(
+                  Array.from(guessSet).filter((x) => !correctSet.has(x))
+                )
+
+                yourGuessText = `${correctSet.size - exclusiveToGuess.size}/${
+                  correctSet.size
+                } correct`
+                correctOptionText = yourGuessText
+                wasCorrect =
+                  guessSet.size === correctSet.size &&
+                  isSubset(guessSet, correctSet)
+                break
+              }
+              case "SENTENCE_FILL": {
+                yourGuessText = (guess.answerData as SentenceFillAnswer).content
+                correctOptionText = question.options
+                  .filter((option) => option.correct)
+                  .map((option) => option.content)
+                  .join(", ")
+                wasCorrect = question.options.some(
+                  (option) =>
+                    option.content.toLowerCase() ===
+                      (
+                        guess.answerData as SentenceFillAnswer
+                      ).content.toLowerCase() && option.correct
+                )
+                break
+              }
+              case "SENTENCE_SELECT": {
+                const guessOption = findOption(question, guess)
+                const correctOption = question.options.find(
+                  (option) => option.correct
+                )
+                yourGuessText = guessOption?.content ?? ""
+                correctOptionText = correctOption?.content ?? ""
+                wasCorrect = guessOption?.correct ?? false
+                break
+              }
+              case "IMAGE_DRAG_AND_DROP": {
+                const guesses = Object.entries(
+                  (guess.answerData as ImageDragAndDropAnswer).dragMap
+                ).map(([droppableId, draggableId]) => [
+                  question.options.find((option) => option.id === draggableId)
+                    ?.content,
+                  question.options.find((option) => option.id === droppableId)
+                    ?.content,
+                ])
+                yourGuessText = guesses
+                  .map((strings) => strings.join(" -> "))
+                  .join(", ")
+                wasCorrect = guesses.every(
+                  ([draggableId, droppableId]) => draggableId === droppableId
+                )
+                break
+              }
             }
 
             return (
               <TableRow key={question.id} className="h-full text-xs sm:text-sm">
                 <TableCell>
-                  <Latex>{getPartByLocale(question.question, "nb_NO")}</Latex>
+                  <Latex>{getPartByLocale(question.content, "nb_NO")}</Latex>
                 </TableCell>
                 <TableCell>
-                  <Latex>{getPartByLocale(guessOption.option, "nb_NO")}</Latex>
+                  <Latex>{getPartByLocale(yourGuessText, "nb_NO")}</Latex>
                 </TableCell>
                 <TableCell>
-                  <Latex>
-                    {getPartByLocale(correctOption.option, "nb_NO")}
-                  </Latex>
+                  <Latex>{getPartByLocale(correctOptionText, "nb_NO")}</Latex>
                 </TableCell>
                 <TableCell className="h-full">
-                  {guessOption.correct ? (
+                  {wasCorrect ? (
                     <CircleCheck size={26} className="text-green-500" />
                   ) : (
                     <CircleX size={26} className="text-red-500" />

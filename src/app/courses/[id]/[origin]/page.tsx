@@ -130,7 +130,7 @@ export default function QuizPage({
       {!session && (
         <div className="space-y-2">
           <p>You need to sign in to take the quiz</p>
-          <Button onClick={() => signIn("google")}>Sign in</Button>
+          <Button onClick={() => signIn("auth0")}>Sign in</Button>
         </div>
       )}
 

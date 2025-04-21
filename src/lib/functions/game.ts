@@ -5,12 +5,18 @@ import type {
   GameSessionCreate,
   Guess,
   GuessCreate,
+  ImageDragAndDropAnswer,
+  MatrixAnswer,
+  MultipleChoiceAnswer,
+  SentenceFillAnswer,
+  SentenceSelectAnswer,
 } from "@/types/game"
 import { db } from "../db"
-import type { Question, QuestionWithOptions } from "@/types/question"
+import type { Question } from "@/types/question"
 import { sql } from "kysely"
 import type { Course } from "@/types/course"
 import type { User } from "../db/types/user"
+import { getQuestionsWithOptionsIgnoreWeight } from "./question"
 
 export const createGameSession = async (
   data: GameSessionCreate
@@ -61,7 +67,6 @@ export const getGameSessionWithResults = async (
     .selectAll("gameSession")
     .leftJoin("guess", "gameSession.id", "guess.gameSessionId")
     .leftJoin("question", "guess.questionId", "question.id")
-    .leftJoin("questionOption", "guess.optionId", "questionOption.id")
     .leftJoin("course", "question.courseId", "course.id")
     .select(({ fn, ref }) => [
       sql<Guess[]>`COALESCE(
@@ -71,44 +76,11 @@ export const getGameSessionWithResults = async (
           'createdAt', ${ref("guess.createdAt")},
           'gameSessionId', ${ref("guess.gameSessionId")},
           'questionId', ${ref("guess.questionId")},
-          'optionId', ${ref("guess.optionId")}
+          'answerData', ${ref("guess.answerData")}
         )
       ) FILTER (WHERE ${ref("guess.id")} IS NOT NULL), '[]'
     )`.as("guesses"),
-      sql<QuestionWithOptions[]>`COALESCE(
-      json_agg(
-        DISTINCT jsonb_build_object(
-          'id', ${ref("question.id")},
-          'createdAt', ${ref("question.createdAt")},
-          'updatedAt', ${ref("question.updatedAt")},
-          'courseId', ${ref("question.courseId")},
-          'question', ${ref("question.question")},
-          'origin', ${ref("question.origin")},
-          'label', ${ref("question.label")},
-          'options', (
-            SELECT COALESCE(json_agg(
-              json_build_object(
-                'id', question_option.id,
-                'createdAt', question_option.created_at,
-                'updatedAt', question_option.updated_at,
-                'questionId', question_option.question_id,
-                'option', question_option.option,
-                'correct', question_option.correct
-              )
-            ) FILTER (WHERE question_option.id IS NOT NULL), '[]')
-            FROM question_option
-            WHERE question_option.question_id = question.id
-          )
-        )
-      ) FILTER (WHERE ${ref("question.id")} IS NOT NULL), '[]'
-    )`.as("questions"),
       fn.count<number>("guess.id").as("guessAmount"),
-      sql<number>`COUNT(*) FILTER (WHERE ${ref(
-        "questionOption.correct"
-      )} = TRUE)`.as("amountCorrect"),
-      sql<number>`COUNT(*) FILTER (WHERE ${ref(
-        "questionOption.correct"
-      )} = FALSE)`.as("amountIncorrect"),
       sql<Course>`json_build_object(
       'id', ${ref("course.id")},
       'createdAt', ${ref("course.createdAt")},
@@ -120,7 +92,82 @@ export const getGameSessionWithResults = async (
     .groupBy(["gameSession.id", "course.id"])
     .executeTakeFirst()
 
-  return gameSession
+  if (!gameSession) return
+
+  const questions = await getQuestionsWithOptionsIgnoreWeight(
+    undefined,
+    undefined,
+    -1,
+    false,
+    gameSession?.guesses.map((guess) => guess.questionId)
+  )
+  const questionsMap = new Map(
+    questions.map((question) => [question.id, question])
+  )
+
+  let amountCorrect = 0
+  let amountIncorrect = 0
+
+  for (const guess of gameSession?.guesses ?? []) {
+    const question = questionsMap.get(guess.questionId)
+
+    if (!question) continue
+
+    let isCorrect = false
+    const answerData = guess.answerData
+
+    switch (question.type) {
+      case "MULTIPLE_CHOICE":
+        isCorrect = question.options.some(
+          (option) =>
+            option.id === (answerData as MultipleChoiceAnswer).optionId &&
+            option.correct
+        )
+        break
+      case "MATRIX":
+        isCorrect = (answerData as MatrixAnswer).optionIds.every((optionId) =>
+          question.options.some(
+            (option) => option.id === optionId && option.correct
+          )
+        )
+        break
+      case "SENTENCE_FILL":
+        isCorrect = question.options.some(
+          (option) =>
+            option.content.toLowerCase() ===
+              (answerData as SentenceFillAnswer).content.toLowerCase() &&
+            option.correct
+        )
+        break
+      case "SENTENCE_SELECT":
+        isCorrect = question.options.some(
+          (option) =>
+            option.id === (answerData as SentenceSelectAnswer).optionId &&
+            option.correct
+        )
+        break
+      case "IMAGE_DRAG_AND_DROP":
+        isCorrect = Object.entries(
+          (answerData as ImageDragAndDropAnswer).dragMap
+        ).every(([droppableId, draggableId]) => droppableId === draggableId)
+        break
+      default:
+        isCorrect = false
+    }
+
+    if (isCorrect) {
+      amountCorrect++
+    } else {
+      amountIncorrect++
+    }
+  }
+
+  return {
+    ...gameSession,
+    amountCorrect,
+    amountIncorrect,
+    questions,
+  }
 }
 
 export const addGuess = async (data: GuessCreate): Promise<Guess> => {
@@ -130,7 +177,7 @@ export const addGuess = async (data: GuessCreate): Promise<Guess> => {
     .returningAll()
     .executeTakeFirstOrThrow()
 
-  return guess
+  return guess as Guess
 }
 
 export const getGuess = async (
@@ -144,7 +191,9 @@ export const getGuess = async (
     .where("questionId", "=", questionId)
     .executeTakeFirst()
 
-  return guess
+  if (guess) {
+    return guess as Guess
+  }
 }
 
 export const getGameSessionsForUser = async (

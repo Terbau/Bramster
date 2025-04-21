@@ -1,8 +1,8 @@
 import { z } from "zod"
-import { Course } from "./course"
+import { CourseSchema } from "./course"
 import { QuestionWithOptions } from "./question"
 
-export const GameSession = z.object({
+export const GameSessionSchema = z.object({
   id: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -13,47 +13,95 @@ export const GameSession = z.object({
   finishedAt: z.date().nullable().optional(),
 })
 
-export type GameSession = z.infer<typeof GameSession>
+export type GameSession = z.infer<typeof GameSessionSchema>
 
-export const GameSessionCreate = GameSession.omit({
+export const GameSessionCreateSchema = GameSessionSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 })
 
-export type GameSessionCreate = z.infer<typeof GameSessionCreate>
+export type GameSessionCreate = z.infer<typeof GameSessionCreateSchema>
 
-export const Guess = z.object({
+// Answer data types
+
+export const MultipleChoiceAnswerSchema = z.object({
+  optionId: z.string(),
+})
+
+export type MultipleChoiceAnswer = z.infer<typeof MultipleChoiceAnswerSchema>
+
+export const MatrixAnswerSchema = z.object({
+  optionIds: z.array(z.string()),
+})
+
+export type MatrixAnswer = z.infer<typeof MatrixAnswerSchema>
+
+export const SentenceFillAnswerSchema = z.object({
+  content: z.string(),
+})
+
+export type SentenceFillAnswer = z.infer<typeof SentenceFillAnswerSchema>
+
+export const SentenceSelectAnswerSchema = z.object({
+  optionId: z.string(),
+})
+
+export type SentenceSelectAnswer = z.infer<typeof SentenceSelectAnswerSchema>
+
+export const ImageDragAndDropAnswerSchema = z.object({
+  // key is the id of the droppable, value is the id of the draggable
+  dragMap: z.record(z.string(), z.string()),
+  amountCorrect: z.number(),
+  amountIncorrect: z.number(),
+})
+
+export type ImageDragAndDropAnswer = z.infer<
+  typeof ImageDragAndDropAnswerSchema
+>
+
+export const AnswerDataSchema = z.union([
+  MultipleChoiceAnswerSchema,
+  MatrixAnswerSchema,
+  SentenceFillAnswerSchema,
+  SentenceSelectAnswerSchema,
+  ImageDragAndDropAnswerSchema,
+])
+
+export type AnswerData = z.infer<typeof AnswerDataSchema>
+
+export const GuessSchema = z.object({
   id: z.string(),
   createdAt: z.date(),
   questionId: z.string(),
-  optionId: z.string(),
   gameSessionId: z.string(),
+  answerData: AnswerDataSchema,
 })
 
-export type Guess = z.infer<typeof Guess>
+export type Guess = z.infer<typeof GuessSchema>
 
-export const GuessCreate = Guess.omit({
+export const GuessCreateSchema = GuessSchema.omit({
   id: true,
   createdAt: true,
 })
 
-export type GuessCreate = z.infer<typeof GuessCreate>
+export type GuessCreate = z.infer<typeof GuessCreateSchema>
 
-export const ExtendedGameSession = GameSession.extend({
+export const ExtendedGameSessionSchema = GameSessionSchema.extend({
   guessAmount: z.number(),
 })
 
-export type ExtendedGameSession = z.infer<typeof ExtendedGameSession>
+export type ExtendedGameSession = z.infer<typeof ExtendedGameSessionSchema>
 
-export const ExtendedGameSessionWithResults = ExtendedGameSession.extend({
-  amountCorrect: z.number(),
-  amountIncorrect: z.number(),
-  questions: z.array(QuestionWithOptions),
-  guesses: z.array(Guess),
-  course: Course,
-})
+export const ExtendedGameSessionWithResultsSchema =
+  ExtendedGameSessionSchema.extend({
+    amountCorrect: z.number(),
+    amountIncorrect: z.number(),
+    questions: z.array(QuestionWithOptions),
+    guesses: z.array(GuessSchema),
+    course: CourseSchema,
+  })
 
 export type ExtendedGameSessionWithResults = z.infer<
-  typeof ExtendedGameSessionWithResults
+  typeof ExtendedGameSessionWithResultsSchema
 >

@@ -107,3 +107,7 @@ export function isFieldRequired<
     field._def.typeName !== ZodFirstPartyTypeKind.ZodDefault
   )
 }
+
+export function isSubset<T>(subset: Set<T>, superset: Set<T>): boolean {
+  return Array.from(subset).every((elem) => superset.has(elem))
+}

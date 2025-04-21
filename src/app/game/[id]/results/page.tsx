@@ -11,7 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { asReadbleTime, capitalized, getPartByLocale } from "@/lib/utils"
+import {
+  asReadbleTime,
+  capitalized,
+  getPartByLocale,
+  isSubset,
+} from "@/lib/utils"
 import type {
   ExtendedGameSessionWithResults,
   Guess,
@@ -168,8 +173,9 @@ export default function GameResultsPage({
                     .filter((option) => option.correct)
                     .map((option) => option.id)
                 )
-                const exclusiveToGuess = guessSet.difference(correctSet)
-                const exclusiveToCorrect = correctSet.difference(guessSet)
+                const exclusiveToGuess = new Set(
+                  Array.from(guessSet).filter((x) => !correctSet.has(x))
+                )
 
                 yourGuessText = `${correctSet.size - exclusiveToGuess.size}/${
                   correctSet.size
@@ -177,7 +183,7 @@ export default function GameResultsPage({
                 correctOptionText = yourGuessText
                 wasCorrect =
                   guessSet.size === correctSet.size &&
-                  guessSet.isSubsetOf(correctSet)
+                  isSubset(guessSet, correctSet)
                 break
               }
               case "SENTENCE_FILL": {

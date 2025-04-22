@@ -167,7 +167,7 @@ export const InteractiveMultipleChoiceEditor = ({
     }
 
     const lines = clipboardText
-      .replace(/\r/g, "")
+      .replace(/\r/g, " ")
       .split(/(?=[A-ZÆØÅ])/)
       .map((line) => line.trim())
       .filter((line) => line !== "")

@@ -9,6 +9,7 @@ import {
 import { useCreateQuestion } from "@/hooks/useCreateQuestion"
 import { useGetCourses } from "@/hooks/useGetCourses"
 import { useGetOrigins } from "@/hooks/useGetOrigins"
+import { INTERACTIVE_EDITORS } from "../[questionId]/page"
 
 export default function DashboardQuestionsDetailPage() {
   const searchParams = useSearchParams()
@@ -37,7 +38,12 @@ export default function DashboardQuestionsDetailPage() {
   const { mutate: mutateCreate, isPending: isPendingCreate } =
     useCreateQuestion({
       onSuccess: (data: Question) => {
-        router.push(`/dashboard/questions/${data.id}`)
+        let params = ""
+        if (Object.keys(INTERACTIVE_EDITORS).includes(data.type)) {
+          params = `?preferredTab=${INTERACTIVE_EDITORS[data.type]}`
+        }
+
+        router.push(`/dashboard/questions/${data.id}${params}`)
       },
     })
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { Spinner } from "@/components/Spinner"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { QuestionForm } from "@/components/DashboardForms/QuestionForm"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { QuestionOptionForm } from "@/components/DashboardForms/QuestionOptionForm"
@@ -36,7 +36,7 @@ export interface DashboardQuestionsDetailPageParams {
   params: { questionId: string }
 }
 
-const INTERACTIVE_EDITORS: Partial<Record<QuestionType, string>> = {
+export const INTERACTIVE_EDITORS: Partial<Record<QuestionType, string>> = {
   MULTIPLE_CHOICE: "Interactive Multiple Choice Editor",
   MATRIX: "Interactive Matrix Editor",
   IMAGE_DRAG_AND_DROP: "Interactive Image Drag And Drop Editor",
@@ -45,10 +45,13 @@ const INTERACTIVE_EDITORS: Partial<Record<QuestionType, string>> = {
 export default function DashboardQuestionsDetailPage({
   params,
 }: DashboardQuestionsDetailPageParams) {
+  const searchParams = useSearchParams()
   const router = useRouter()
 
+  const defaultTab = searchParams.get("preferredTab") ?? undefined
+
   const [optionsTabValue, setOptionsTabValue] = useState<string | undefined>(
-    undefined
+    defaultTab
   )
 
   const { data: questionData, isLoading: questionIsLoading } = useGetQuestion({
@@ -204,7 +207,7 @@ export default function DashboardQuestionsDetailPage({
 
   return (
     <div className="flex flex-col gap-4 mt-4">
-      <Tabs defaultValue="question">
+      <Tabs defaultValue={!defaultTab ? "question" : "options"}>
         <div className="flex flex-row gap-2 items-center justify-between">
           <TabsList>
             <TabsTrigger value="question">Question</TabsTrigger>

@@ -138,7 +138,7 @@ export const QuestionForm = ({
         {...register("subContent")}
         required={isFieldRequired(QuestionCreateSchema, "subContent")}
         placeholder="Edit sub content"
-        label="Sub content"
+        label="Sub content (only for SentenceSelect and SentenceFill)"
         errorMessage={errors.subContent?.message}
         aria-invalid={errors.subContent ? "true" : "false"}
       />

@@ -31,6 +31,8 @@ import { HorizontalScrollArea } from "@/components/HorizontalScrollArea/Horizont
 import { InteractiveMultipleChoiceEditor } from "@/components/InteractiveEditors/InteractiveMultipleChoiceEditor"
 import { Icon } from "@iconify/react/dist/iconify.js"
 import Link from "next/link"
+import { InteractiveSentenceSelectEditor } from "@/components/InteractiveEditors/InteractiveSentenceSelectEditor"
+import { InteractiveSentenceFillEditor } from "@/components/InteractiveEditors/InteractiveSentenceFillEditor"
 
 export interface DashboardQuestionsDetailPageParams {
   params: { questionId: string }
@@ -284,6 +286,36 @@ export default function DashboardQuestionsDetailPage({
               {INTERACTIVE_EDITORS.MULTIPLE_CHOICE && (
                 <TabsContent value={INTERACTIVE_EDITORS.MULTIPLE_CHOICE}>
                   <InteractiveMultipleChoiceEditor
+                    question={questionData}
+                    existingOptions={optionsData}
+                    saveIsPending={
+                      isPendingUpdateOption ||
+                      isPendingCreateOption ||
+                      isPendingDeleteOption
+                    }
+                    onSave={handleInteractiveSave}
+                    onQuestionSave={mutateUpdate}
+                  />
+                </TabsContent>
+              )}
+              {INTERACTIVE_EDITORS.SENTENCE_SELECT && (
+                <TabsContent value={INTERACTIVE_EDITORS.SENTENCE_SELECT}>
+                  <InteractiveSentenceSelectEditor
+                    question={questionData}
+                    existingOptions={optionsData}
+                    saveIsPending={
+                      isPendingUpdateOption ||
+                      isPendingCreateOption ||
+                      isPendingDeleteOption
+                    }
+                    onSave={handleInteractiveSave}
+                    onQuestionSave={mutateUpdate}
+                  />
+                </TabsContent>
+              )}
+              {INTERACTIVE_EDITORS.SENTENCE_FILL && (
+                <TabsContent value={INTERACTIVE_EDITORS.SENTENCE_FILL}>
+                  <InteractiveSentenceFillEditor
                     question={questionData}
                     existingOptions={optionsData}
                     saveIsPending={

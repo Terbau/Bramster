@@ -22,7 +22,7 @@ interface QuestionFormProps extends Omit<ComponentProps<"form">, "onSubmit"> {
   coursesData?: Paginated<ExtendedCourse>
   originsData?: OriginDetails[]
   submitButtonText?: string
-  defaultValues?: QuestionFormData
+  defaultValues?: Partial<QuestionFormData>
   submitIsLoading?: boolean
   deleteIsLoading?: boolean
   onSubmit: (data: QuestionFormData) => void

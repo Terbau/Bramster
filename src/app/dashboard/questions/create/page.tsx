@@ -1,16 +1,38 @@
 "use client"
 
 import type { Question } from "@/types/question"
-import { useToast } from "@/components/ui/use-toast"
-import { useRouter } from "next/navigation"
-import { QuestionForm } from "@/components/DashboardForms/QuestionForm"
+import { useRouter, useSearchParams } from "next/navigation"
+import {
+  QuestionForm,
+  type QuestionFormData,
+} from "@/components/DashboardForms/QuestionForm"
 import { useCreateQuestion } from "@/hooks/useCreateQuestion"
 import { useGetCourses } from "@/hooks/useGetCourses"
 import { useGetOrigins } from "@/hooks/useGetOrigins"
 
 export default function DashboardQuestionsDetailPage() {
-  const { toast } = useToast()
+  const searchParams = useSearchParams()
   const router = useRouter()
+
+  const type = searchParams.get("type")
+  const courseId = searchParams.get("courseId")
+  const origin = searchParams.get("origin")
+  const label = searchParams.get("label")
+
+  const defaultValues: Partial<QuestionFormData> = {}
+
+  if (type) {
+    defaultValues.type = type as Question["type"]
+  }
+  if (courseId) {
+    defaultValues.courseId = courseId
+  }
+  if (origin) {
+    defaultValues.origin = origin
+  }
+  if (label) {
+    defaultValues.label = label
+  }
 
   const { mutate: mutateCreate, isPending: isPendingCreate } =
     useCreateQuestion({
@@ -25,6 +47,7 @@ export default function DashboardQuestionsDetailPage() {
 
   return (
     <QuestionForm
+      defaultValues={defaultValues}
       coursesData={coursesData}
       originsData={originsData}
       onSubmit={mutateCreate}

@@ -27,14 +27,17 @@ import {
   InteractiveImageDragAndDropEditor,
   InteractiveMatrixEditor,
 } from "@/components/InteractiveEditors"
-import { useQueryClient } from "@tanstack/react-query"
 import { HorizontalScrollArea } from "@/components/HorizontalScrollArea/HorizontalScrollArea"
+import { InteractiveMultipleChoiceEditor } from "@/components/InteractiveEditors/InteractiveMultipleChoiceEditor"
+import { Icon } from "@iconify/react/dist/iconify.js"
+import Link from "next/link"
 
 export interface DashboardQuestionsDetailPageParams {
   params: { questionId: string }
 }
 
 const INTERACTIVE_EDITORS: Partial<Record<QuestionType, string>> = {
+  MULTIPLE_CHOICE: "Interactive Multiple Choice Editor",
   MATRIX: "Interactive Matrix Editor",
   IMAGE_DRAG_AND_DROP: "Interactive Image Drag And Drop Editor",
 } as const
@@ -42,7 +45,6 @@ const INTERACTIVE_EDITORS: Partial<Record<QuestionType, string>> = {
 export default function DashboardQuestionsDetailPage({
   params,
 }: DashboardQuestionsDetailPageParams) {
-  const queryClient = useQueryClient()
   const router = useRouter()
 
   const [optionsTabValue, setOptionsTabValue] = useState<string | undefined>(
@@ -203,10 +205,20 @@ export default function DashboardQuestionsDetailPage({
   return (
     <div className="flex flex-col gap-4 mt-4">
       <Tabs defaultValue="question">
-        <TabsList>
-          <TabsTrigger value="question">Question</TabsTrigger>
-          <TabsTrigger value="options">Options</TabsTrigger>
-        </TabsList>
+        <div className="flex flex-row gap-2 items-center justify-between">
+          <TabsList>
+            <TabsTrigger value="question">Question</TabsTrigger>
+            <TabsTrigger value="options">Options</TabsTrigger>
+          </TabsList>
+          <Button variant="outline" asChild>
+            <Link
+              href={`/dashboard/questions/create?courseId=${questionData.courseId}&origin=${questionData.origin}&type=${questionData.type}&label=${questionData.label}`}
+            >
+              <Icon icon="mdi:plus" className="mr-1" />
+              Create similar question
+            </Link>
+          </Button>
+        </div>
         <TabsContent value="question">
           <QuestionForm
             coursesData={coursesData}
@@ -272,6 +284,21 @@ export default function DashboardQuestionsDetailPage({
                   submitButtonText="Create"
                 />
               </TabsContent>
+              {INTERACTIVE_EDITORS.MULTIPLE_CHOICE && (
+                <TabsContent value={INTERACTIVE_EDITORS.MULTIPLE_CHOICE}>
+                  <InteractiveMultipleChoiceEditor
+                    question={questionData}
+                    existingOptions={optionsData}
+                    saveIsPending={
+                      isPendingUpdateOption ||
+                      isPendingCreateOption ||
+                      isPendingDeleteOption
+                    }
+                    onSave={handleInteractiveSave}
+                    onQuestionSave={mutateUpdate}
+                  />
+                </TabsContent>
+              )}
               {INTERACTIVE_EDITORS.MATRIX && (
                 <TabsContent value={INTERACTIVE_EDITORS.MATRIX}>
                   <InteractiveMatrixEditor

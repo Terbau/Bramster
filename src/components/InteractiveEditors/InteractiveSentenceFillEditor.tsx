@@ -184,7 +184,7 @@ export const InteractiveSentenceFillEditor = ({
     // subContent = "Vanskelig {{placeholder}} er for eksempel vekst av kvinnebryst ved pubertet og amming."
 
     const regex = /(?<firstPart>.+)?\((?<parens>.*)\)(?<lastPart>.*)?/
-    const match = clipboardText.replace(/\n/g, " ").match(regex)
+    const match = clipboardText.replace(/[\r\n]+/g, " ").match(regex)
     if (!match) {
       toast({
         title: "Error",

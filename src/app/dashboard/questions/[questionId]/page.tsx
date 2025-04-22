@@ -19,11 +19,11 @@ import { useDeleteQuestionOption } from "@/hooks/useDeleteQuestionOption"
 import { Button } from "@/components/ui/button"
 import {
   QuestionOptionCreateSchema,
-  type QuestionType,
   type QuestionOption,
 } from "@/types/question"
 import {
   type EditorQuestionOption,
+  INTERACTIVE_EDITORS,
   InteractiveImageDragAndDropEditor,
   InteractiveMatrixEditor,
 } from "@/components/InteractiveEditors"
@@ -35,12 +35,6 @@ import Link from "next/link"
 export interface DashboardQuestionsDetailPageParams {
   params: { questionId: string }
 }
-
-export const INTERACTIVE_EDITORS: Partial<Record<QuestionType, string>> = {
-  MULTIPLE_CHOICE: "Interactive Multiple Choice Editor",
-  MATRIX: "Interactive Matrix Editor",
-  IMAGE_DRAG_AND_DROP: "Interactive Image Drag And Drop Editor",
-} as const
 
 export default function DashboardQuestionsDetailPage({
   params,

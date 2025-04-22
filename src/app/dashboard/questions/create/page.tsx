@@ -9,7 +9,7 @@ import {
 import { useCreateQuestion } from "@/hooks/useCreateQuestion"
 import { useGetCourses } from "@/hooks/useGetCourses"
 import { useGetOrigins } from "@/hooks/useGetOrigins"
-import { INTERACTIVE_EDITORS } from "../[questionId]/page"
+import { INTERACTIVE_EDITORS } from "@/components/InteractiveEditors"
 
 export default function DashboardQuestionsDetailPage() {
   const searchParams = useSearchParams()

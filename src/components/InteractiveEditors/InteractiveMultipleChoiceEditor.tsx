@@ -91,6 +91,15 @@ export const InteractiveMultipleChoiceEditor = ({
       return
     }
 
+    if (!options.some((opt) => opt.correct)) {
+      toast({
+        title: "Error",
+        description: "Please select at least one correct option.",
+        variant: "destructive",
+      })
+      return
+    }
+
     onSave?.(options)
     onQuestionSave?.(question)
   }

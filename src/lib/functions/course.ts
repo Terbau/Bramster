@@ -100,9 +100,7 @@ export const getOrigins = async (
       fn.count<number>("question.id").as("totalQuestions"),
     ])
     .$if(courseId !== undefined, (qb) =>
-      qb
-        .leftJoin("course", "question.courseId", "course.id")
-        .where("course.id", "=", courseId ?? "")
+      qb.where("question.courseId", "=", courseId ?? "")
     )
     .groupBy(["question.origin", "question.label"])
     .execute()

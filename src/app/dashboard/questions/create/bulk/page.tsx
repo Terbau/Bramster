@@ -169,19 +169,6 @@ export default function DashboardQuestionsCreateBulkPage() {
     [questionsData]
   )
 
-  const handleInteractiveSave = useCallback(
-    (questionId: string, options: EditorQuestionOption[]) => {
-      for (const option of options) {
-        if (option.isNew) {
-          handleAddOption(questionId, option.content, option.correct)
-        } else {
-          handleOptionChange(questionId, option.id, option)
-        }
-      }
-    },
-    [handleAddOption]
-  )
-
   const handleOptionChange = useCallback(
     (questionId: string, optionId: string, data: QuestionOptionFormData) => {
       const question = questionsData.find((q) => q.tempId === questionId)
@@ -222,6 +209,19 @@ export default function DashboardQuestionsCreateBulkPage() {
       }
     },
     [questionsData]
+  )
+
+  const handleInteractiveSave = useCallback(
+    (questionId: string, options: EditorQuestionOption[]) => {
+      for (const option of options) {
+        if (option.isNew) {
+          handleAddOption(questionId, option.content, option.correct)
+        } else {
+          handleOptionChange(questionId, option.id, option)
+        }
+      }
+    },
+    [handleAddOption, handleOptionChange]
   )
 
   const handleCreate = () => {

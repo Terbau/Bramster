@@ -167,14 +167,17 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
     [amountQuestions]
   )
 
-  const syncAnswer = (data: AnswerData) => {
-    handleSetLastGuessSyncSuccess(null)
-    addGuessMutate({
-      questionId: currentQuestion.id,
-      answerData: data,
-      gameSessionId: gameSession.id,
-    })
-  }
+  const syncAnswer = useCallback(
+    (data: AnswerData) => {
+      handleSetLastGuessSyncSuccess(null)
+      addGuessMutate({
+        questionId: currentQuestion.id,
+        answerData: data,
+        gameSessionId: gameSession.id,
+      })
+    },
+    [currentQuestion.id, gameSession.id]
+  )
 
   const handleMultipleChoiceAnswer = useCallback(
     (index: number) => {

@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils"
 import type { SortDirection } from "@/types/pagination"
 import { Badge } from "../ui/badge"
 import { Icon } from "@iconify/react/dist/iconify.js"
+import { Checkbox } from "../ui/checkbox"
+import { useState } from "react"
 
 export interface DashboardTableRowElementDetails {
   label: string
@@ -45,6 +47,8 @@ interface DashboardTableProps {
   page?: number
   pageSize?: number
   totalAmount?: number
+  hasDeleteColumn?: boolean
+  onDelete?: (ids: DashboardTableRow["id"][]) => void
   onSortChange?: (
     sortBy: string | undefined,
     sortDirection: SortDirection
@@ -60,8 +64,14 @@ export const DashboardTable = ({
   page = 0,
   pageSize = 30,
   totalAmount = 0,
+  hasDeleteColumn = false,
+  onDelete,
   onSortChange,
 }: DashboardTableProps) => {
+  const [deleteSelected, setDeleteSelected] = useState<Record<string, boolean>>(
+    {}
+  )
+
   const handleSortChange = (headerElem: string) => {
     if (!onSortChange) return
 
@@ -80,6 +90,17 @@ export const DashboardTable = ({
     }
 
     onSortChange(headerElem, "asc")
+  }
+
+  const handleDeleteClick = () => {
+    if (!onDelete) return
+
+    const selectedIds = Object.entries(deleteSelected)
+      .filter(([, isChecked]) => isChecked)
+      .map(([id]) => id)
+
+    onDelete(selectedIds)
+    setDeleteSelected({})
   }
 
   return (
@@ -103,6 +124,17 @@ export const DashboardTable = ({
               </button>
             </TableHead>
           ))}
+          {hasDeleteColumn && (
+            <TableHead>
+              <button
+                type="button"
+                className="flex items-center justify-center"
+                onClick={handleDeleteClick}
+              >
+                <Icon icon="mdi:delete" className="h-6 w-6" />
+              </button>
+            </TableHead>
+          )}
         </TableRow>
       </TableHeader>
       {isLoading ? (
@@ -171,6 +203,19 @@ export const DashboardTable = ({
                   </TableCell>
                 )
               })}
+              {hasDeleteColumn && (
+                <TableCell>
+                  <Checkbox
+                    checked={deleteSelected[row.id] ?? false}
+                    onCheckedChange={(checked) =>
+                      setDeleteSelected((prev) => ({
+                        ...prev,
+                        [row.id]: !!checked,
+                      }))
+                    }
+                  />
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

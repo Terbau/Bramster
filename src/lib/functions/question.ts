@@ -141,16 +141,28 @@ export const updateQuestion = async (
   return updatedQuestion
 }
 
+export const deleteQuestions = async (
+  questionIds: Question["id"][]
+): Promise<Question[]> => {
+  const deletedQuestions = await db
+    .deleteFrom("question")
+    .where("id", "in", questionIds ?? [])
+    .returningAll()
+    .execute()
+
+  return deletedQuestions
+}
+
 export const deleteQuestion = async (
   questionId: Question["id"]
 ): Promise<Question | undefined> => {
-  const deletedQuestion = await db
-    .deleteFrom("question")
-    .where("id", "=", questionId)
-    .returningAll()
-    .executeTakeFirst()
+  const deletedQuestions = await deleteQuestions([questionId])
 
-  return deletedQuestion
+  if (deletedQuestions.length === 0) {
+    return undefined
+  }
+
+  return deletedQuestions[0]
 }
 
 export const getQuestionOptions = async (

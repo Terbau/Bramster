@@ -29,6 +29,7 @@ import Link from "next/link"
 import { useGetOrigins } from "@/hooks/useGetOrigins"
 import { useGetQuestions } from "@/hooks/useGetQuestions"
 import { useGetCourses } from "@/hooks/useGetCourses"
+import { useDeleteQuestions } from "@/hooks/useDeleteQuestions"
 
 export default function DashboardQuestionsPage() {
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(0))
@@ -80,6 +81,8 @@ export default function DashboardQuestionsPage() {
   })
 
   const { data: coursesData, isLoading: coursesIsLoading } = useGetCourses({})
+
+  const { mutate: mutateDeleteQuestions, isPending: mutateDeleteQuestionsIsPending } = useDeleteQuestions()
 
   const totalPages = Math.ceil((data?.total ?? 0) / pageSize)
 
@@ -236,6 +239,10 @@ export default function DashboardQuestionsPage() {
     setSortDirection(sortDirection)
   }
 
+  const handleMultipleDelete = (ids: DashboardTableRow["id"][]) => {
+    mutateDeleteQuestions(ids)
+  }
+
   return (
     <>
       <div className="flex flex-row gap-x-2 items-center ml-auto -mt-8 w-fit">
@@ -278,6 +285,8 @@ export default function DashboardQuestionsPage() {
         page={page}
         pageSize={pageSize}
         totalAmount={data?.total ?? 0}
+        hasDeleteColumn
+        onDelete={handleMultipleDelete}
       />
       {totalPages > 1 && (
         <Pagination

@@ -45,6 +45,8 @@ import {
   QuestionFromJsonSchema,
   type QuestionFromJsonFormData,
 } from "@/components/DashboardForms/QuestionFromJsonForm"
+import { InteractiveMultipleChoiceEditor } from "@/components/InteractiveEditors/InteractiveMultipleChoiceEditor"
+import type { EditorQuestionOption } from "@/components/InteractiveEditors"
 
 const QuestionOptionCreateWithTempIdSchema = QuestionOptionCreateSchema.extend({
   tempId: z.string(),
@@ -72,7 +74,9 @@ export default function DashboardQuestionsCreateBulkPage() {
     QuestionWithOptionsCreateWithTempId[]
   >([])
   const [questionsTabValue, setQuestionsTabValue] = useState<string>("")
-  const [optionsTabValue, setOptionsTabValue] = useState<string>("")
+  const [optionsTabValue, setOptionsTabValue] = useState<string>(
+    "interactivemultiplechoice"
+  )
 
   const type = searchParams.get("type")
   const courseId = searchParams.get("courseId")
@@ -135,8 +139,6 @@ export default function DashboardQuestionsCreateBulkPage() {
     setOptionsTabValue(newOption.tempId)
   }
 
-  console.log("questionsData", questionsData)
-
   const handleQuestionChange = useCallback(
     (questionId: string, data: QuestionFormData) => {
       const question = questionsData.find((q) => q.tempId === questionId)
@@ -165,6 +167,19 @@ export default function DashboardQuestionsCreateBulkPage() {
       }
     },
     [questionsData]
+  )
+
+  const handleInteractiveSave = useCallback(
+    (questionId: string, options: EditorQuestionOption[]) => {
+      for (const option of options) {
+        if (option.isNew) {
+          handleAddOption(questionId, option.content, option.correct)
+        } else {
+          handleOptionChange(questionId, option.id, option)
+        }
+      }
+    },
+    [handleAddOption]
   )
 
   const handleOptionChange = useCallback(
@@ -323,7 +338,7 @@ export default function DashboardQuestionsCreateBulkPage() {
 
   useEffect(() => {
     if (questionsTabValue) {
-      setOptionsTabValue("question")
+      setOptionsTabValue("interactivemultiplechoice")
     }
   }, [questionsTabValue])
 
@@ -401,6 +416,14 @@ export default function DashboardQuestionsCreateBulkPage() {
                       </TabsList>
                       <Button
                         variant="outline"
+                        onClick={() =>
+                          setOptionsTabValue("interactivemultiplechoice")
+                        }
+                      >
+                        Interactive editor
+                      </Button>
+                      <Button
+                        variant="outline"
                         onClick={() => handleAddOption(question.tempId)}
                       >
                         Add option
@@ -448,6 +471,41 @@ export default function DashboardQuestionsCreateBulkPage() {
                       />
                     </TabsContent>
                   ))}
+                  {question.type === "MULTIPLE_CHOICE" && (
+                    <TabsContent value="interactivemultiplechoice">
+                      <InteractiveMultipleChoiceEditor
+                        question={{
+                          id: question.tempId,
+                          createdAt: new Date(),
+                          updatedAt: new Date(),
+                          ...question,
+                        }}
+                        existingOptions={question.options.map((option) => ({
+                          id: option.tempId,
+                          createdAt: new Date(),
+                          updatedAt: new Date(),
+                          correct: false,
+                          ...option,
+                        }))}
+                        onSave={(data) => {
+                          handleInteractiveSave(question.tempId, data)
+                          toast({
+                            title: "Success",
+                            description: "Question saved.",
+                            variant: "default",
+                          })
+                        }}
+                        onQuestionSave={(data) => {
+                          handleQuestionChange(question.tempId, data)
+                          toast({
+                            title: "Success",
+                            description: "Question options saved.",
+                            variant: "default",
+                          })
+                        }}
+                      />
+                    </TabsContent>
+                  )}
                 </Tabs>
               </CardContent>
             </Card>

@@ -1,6 +1,7 @@
 import { authOptions } from "@/lib/auth"
 import {
   createQuestion,
+  deleteQuestions,
   getQuestions,
   getQuestionsAmount,
 } from "@/lib/functions/question"
@@ -14,6 +15,7 @@ import {
 } from "@/types/question"
 import { getServerSession } from "next-auth"
 import { type NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 
 export async function GET(
   request: NextRequest
@@ -74,4 +76,21 @@ export async function POST(request: NextRequest) {
 
   const question = await createQuestion(questionData)
   return NextResponse.json(question)
+}
+
+export async function DELETE(request: NextRequest) {
+  const session = await getServerSession(authOptions)
+  if (!session) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+  }
+
+  if (!session.user.admin) {
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 })
+  }
+
+  const body = await request.json()
+  const { data: questionIds } = z.object({ data: z.array(z.string())}).parse(body)
+
+  const deletedQuestions = await deleteQuestions(questionIds)
+  return NextResponse.json(deletedQuestions)
 }

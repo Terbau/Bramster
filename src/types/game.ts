@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { CourseSchema } from "./course"
-import { QuestionWithOptions } from "./question"
+import { QuestionWithDetailsSchema } from "./question"
 
 export const GameSessionSchema = z.object({
   id: z.string(),
@@ -97,7 +97,7 @@ export const ExtendedGameSessionWithResultsSchema =
   ExtendedGameSessionSchema.extend({
     amountCorrect: z.number(),
     amountIncorrect: z.number(),
-    questions: z.array(QuestionWithOptions),
+    questions: z.array(QuestionWithDetailsSchema),
     guesses: z.array(GuessSchema),
     course: CourseSchema,
   })

@@ -3,7 +3,7 @@ import type {
   QuestionCreate,
   QuestionOption,
   QuestionOptionCreate,
-  QuestionWithOptions,
+  QuestionWithDetails,
 } from "@/types/question"
 import { db } from "../db"
 import { sql } from "kysely"
@@ -97,20 +97,31 @@ export const getQuestion = async (
   return question
 }
 
+export const createQuestions = async (
+  questions: QuestionCreate[]
+): Promise<Question[]> => {
+  const createdQuestions = await db
+    .insertInto("question")
+    .values(questions)
+    .returningAll()
+    .execute()
+
+  if (createdQuestions.length === 0) {
+    throw new Error("Failed to create questions")
+  }
+
+  return createdQuestions
+}
+
 export const createQuestion = async (
   question: QuestionCreate
 ): Promise<Question> => {
-  const createdQuestion = await db
-    .insertInto("question")
-    .values(question)
-    .returningAll()
-    .executeTakeFirst()
-
-  if (!createdQuestion) {
+  const createdQuestions = await createQuestions([question])
+  if (createdQuestions.length === 0) {
     throw new Error("Failed to create question")
   }
 
-  return createdQuestion
+  return createdQuestions[0]
 }
 
 export const updateQuestion = async (
@@ -267,7 +278,7 @@ export const getQuestionsWithOptionsIgnoreWeight = async (
   limit = -1,
   isRandomOrder = false,
   questionIds?: Question["id"][]
-): Promise<QuestionWithOptions[]> => {
+): Promise<QuestionWithDetails[]> => {
   const questions = await db
     .selectFrom("question")
     .leftJoin("questionOption", "question.id", "questionOption.questionId")
@@ -307,7 +318,7 @@ export const getQuestionsWithOptions = async (
   limit = -1,
   shouldOrderByWeightFirst = false,
   isRandomOrder = false
-): Promise<QuestionWithOptions[]> => {
+): Promise<QuestionWithDetails[]> => {
   const questions = await db
     .selectFrom("question")
     .selectAll("question")

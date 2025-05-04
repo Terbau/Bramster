@@ -6,7 +6,7 @@ import { QuizGame } from "@/components/QuizGame/QuizGame"
 import { Button } from "@/components/ui/button"
 import { capitalized } from "@/lib/utils"
 import type { GameSession } from "@/types/game"
-import type { QuestionWithOptions } from "@/types/question"
+import type { QuestionWithDetails } from "@/types/question"
 import { useMutation } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
 import { signIn, useSession } from "next-auth/react"
@@ -14,7 +14,7 @@ import { type FormEvent, useState, useEffect } from "react"
 
 interface GameMutationResponse {
   gameSession: GameSession
-  questions: QuestionWithOptions[]
+  questions: QuestionWithDetails[]
 }
 
 const limitOptions = [

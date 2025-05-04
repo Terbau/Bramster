@@ -7,7 +7,7 @@ import {
 import { getServerSession } from "next-auth"
 import { NextResponse, type NextRequest } from "next/server"
 import type { GameSession } from "@/types/game"
-import type { QuestionWithOptions } from "@/types/question"
+import type { QuestionWithDetails } from "@/types/question"
 import type { CourseParams } from "../route"
 
 interface PostRequestData {
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest, { params }: CourseParams) {
     isRandomOrder = true
   }
 
-  const funcs: [Promise<GameSession>, Promise<QuestionWithOptions[]>] = [
+  const funcs: [Promise<GameSession>, Promise<QuestionWithDetails[]>] = [
     createGameSession({
       origin,
       userId: session.user.id,

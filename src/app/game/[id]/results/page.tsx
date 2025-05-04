@@ -26,7 +26,7 @@ import type {
   SentenceFillAnswer,
   SentenceSelectAnswer,
 } from "@/types/game"
-import type { QuestionWithOptions } from "@/types/question"
+import type { QuestionWithDetails } from "@/types/question"
 import { useQuery } from "@tanstack/react-query"
 import { CircleCheck, CircleX } from "lucide-react"
 import { useSession } from "next-auth/react"
@@ -66,7 +66,7 @@ export default function GameResultsPage({
     fields.push({ label: "Finished at", value: asReadbleTime(data.finishedAt) })
   }
 
-  const findOption = (question: QuestionWithOptions, guess: Guess) => {
+  const findOption = (question: QuestionWithDetails, guess: Guess) => {
     switch (question.type) {
       case "MULTIPLE_CHOICE":
         return question.options.find(

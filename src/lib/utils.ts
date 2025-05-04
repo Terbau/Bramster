@@ -108,6 +108,65 @@ export function isFieldRequired<
   )
 }
 
+export const createPartialFromSchema = <
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  T extends Record<string, any>,
+  K extends ZodObject<Record<string, ZodTypeAny>>,
+>(
+  data: T,
+  schema: K
+): Partial<T> => {
+  const partialData: Partial<T> = {}
+
+  for (const key in schema.shape) {
+    if (key in data) {
+      partialData[key as keyof T] = data[key]
+    }
+  }
+
+  return partialData
+}
+
+export const createStrictPartialFromSchema = <
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  T extends Record<string, any>,
+  K extends ZodObject<Record<string, ZodTypeAny>>,
+>(
+  data: T,
+  schema: K
+) => {
+  const strictPartialData: Partial<T> = {}
+  for (const key in schema.shape) {
+    if (key in data) {
+      strictPartialData[key as keyof T] = data[key]
+    } else {
+      throw new Error(`Key ${key} does not exist in data`)
+    }
+  }
+  return strictPartialData as T
+}
+
+export const createStrictPartialOfRequiredFieldsFromSchema = <
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  T extends Record<string, any>,
+  K extends ZodObject<Record<string, ZodTypeAny>>,
+>(
+  data: T,
+  schema: K
+) => {
+  const strictPartialData: Partial<T> = {}
+  for (const key in schema.shape) {
+    if (key in data) {
+      strictPartialData[key as keyof T] = data[key]
+    } else if (!isFieldRequired(schema, key)) {
+      strictPartialData[key as keyof T] = undefined
+    } else {
+      throw new Error(`Key ${key} does not exist in data`)
+    }
+  }
+  return strictPartialData as T
+}
+
 export function isSubset<T>(subset: Set<T>, superset: Set<T>): boolean {
   return Array.from(subset).every((elem) => superset.has(elem))
 }

@@ -209,14 +209,24 @@ export default function DashboardQuestionsDetailPage({
             <TabsTrigger value="question">Question</TabsTrigger>
             <TabsTrigger value="options">Options</TabsTrigger>
           </TabsList>
-          <Button variant="outline" asChild>
-            <Link
-              href={`/dashboard/questions/create?courseId=${questionData.courseId}&origin=${questionData.origin}&type=${questionData.type}&label=${questionData.label}`}
-            >
-              <Icon icon="mdi:plus" className="mr-1" />
-              Create similar question
-            </Link>
-          </Button>
+          <div className="flex flex-row gap-2 items-center">
+            <Button variant="outline" asChild>
+              <Link
+                href={`/dashboard/questions/create?courseId=${questionData.courseId}&origin=${questionData.origin}&type=${questionData.type}&label=${questionData.label}`}
+              >
+                <Icon icon="mdi:plus" className="mr-1" />
+                Create similar question
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link
+                href={`/dashboard/questions/create/bulk?courseId=${questionData.courseId}&origin=${questionData.origin}&type=${questionData.type}&label=${questionData.label}`}
+              >
+                <Icon icon="mdi:plus" className="mr-1" />
+                Create similar bulk questions
+              </Link>
+            </Button>
+          </div>
         </div>
         <TabsContent value="question">
           <QuestionForm

@@ -61,13 +61,34 @@ export const QuestionOptionCreateSchema = QuestionOptionSchema.omit({
 
 export type QuestionOptionCreate = z.infer<typeof QuestionOptionCreateSchema>
 
-export const QuestionWithOptions = QuestionSchema.extend({
+export const QuestionWithOptionsSchema = QuestionSchema.extend({
   options: z.array(QuestionOptionSchema),
+})
+
+export type QuestionWithOptions = z.infer<typeof QuestionWithOptionsSchema>
+
+export const QuestionWithOptionsCreateSchema = QuestionCreateSchema.extend({
+  options: z.array(QuestionOptionCreateSchema),
+})
+
+export type QuestionWithOptionsCreate = z.infer<
+  typeof QuestionWithOptionsCreateSchema
+>
+
+export const QuestionWithDetailsSchema = QuestionWithOptionsSchema.extend({
   weight: z.number().nullable(),
   allOrigins: z.array(z.string()).nullable(),
 })
 
-export type QuestionWithOptions = z.infer<typeof QuestionWithOptions>
+export type QuestionWithDetails = z.infer<typeof QuestionWithDetailsSchema>
+
+export const QuestionWithDetailsCreateSchema = QuestionCreateSchema.extend({
+  options: z.array(QuestionOptionCreateSchema),
+})
+
+export type QuestionWithDetailsCreate = z.infer<
+  typeof QuestionWithDetailsCreateSchema
+>
 
 export const OriginDetailsSchema = z.object({
   origin: z.string(),

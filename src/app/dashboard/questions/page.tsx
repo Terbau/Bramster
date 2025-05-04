@@ -253,6 +253,12 @@ export default function DashboardQuestionsPage() {
             Add
           </Link>
         </Button>
+        <Button variant="outline" className="flex flex-row gap-x-1" asChild>
+          <Link href="/dashboard/questions/create/bulk">
+            <Icon icon="mdi:plus" className="text-lg" />
+            Add bulk
+          </Link>
+        </Button>
       </div>
       <FilterSection
         label="Filters"

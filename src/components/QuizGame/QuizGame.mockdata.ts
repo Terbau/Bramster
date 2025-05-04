@@ -1,4 +1,4 @@
-import type { QuestionWithOptions } from "@/types/question"
+import type { QuestionWithDetails } from "@/types/question"
 
 export const GAME_SESSION = {
   id: "9d7f0f23-41e5-4064-ae26-f93d7f71b557",
@@ -11,7 +11,7 @@ export const GAME_SESSION = {
   courseId: "mfel1050",
 }
 
-export const MULTIPLE_CHOICE_QUESTION: QuestionWithOptions = {
+export const MULTIPLE_CHOICE_QUESTION: QuestionWithDetails = {
   id: "6cb7544c-44d9-4af8-9f9d-fb2550671df4",
   createdAt: new Date("2024-05-19T11:28:48.458Z"),
   updatedAt: new Date("2024-05-19T11:28:48.458Z"),
@@ -63,7 +63,7 @@ export const MULTIPLE_CHOICE_QUESTION: QuestionWithOptions = {
   ],
 }
 
-export const IMAGE_DRAG_AND_DROP_QUESTION: QuestionWithOptions = {
+export const IMAGE_DRAG_AND_DROP_QUESTION: QuestionWithDetails = {
   id: "6cb7544c-44d9-4af8-9f9d-fb2550671df4",
   createdAt: new Date("2024-05-19T11:28:48.458Z"),
   updatedAt: new Date("2024-05-19T11:28:48.458Z"),
@@ -214,7 +214,7 @@ export const IMAGE_DRAG_AND_DROP_QUESTION: QuestionWithOptions = {
   ],
 }
 
-export const MATRIX_QUESTION: QuestionWithOptions = {
+export const MATRIX_QUESTION: QuestionWithDetails = {
   id: "6cb7544c-44d9-4af8-9f9d-fb2550671df4",
   createdAt: new Date("2024-05-19T11:28:48.458Z"),
   updatedAt: new Date("2024-05-19T11:28:48.458Z"),
@@ -237,7 +237,8 @@ export const MATRIX_QUESTION: QuestionWithOptions = {
       questionId: "6cb7544c-44d9-4af8-9f9d-fb2550671df4",
       content: "1",
       correct: true,
-      yContent: "Høyre forkammer Høyre forkammer Høyre forkammer Høyre forkammer",
+      yContent:
+        "Høyre forkammer Høyre forkammer Høyre forkammer Høyre forkammer",
       xCoordinate: null,
       yCoordinate: null,
     },
@@ -299,13 +300,14 @@ export const MATRIX_QUESTION: QuestionWithOptions = {
   ],
 }
 
-export const SENTENCE_FILL_QUESTION: QuestionWithOptions = {
+export const SENTENCE_FILL_QUESTION: QuestionWithDetails = {
   id: "6cb7544c-44d9-4af8-9f9d-fb2550671df4",
   createdAt: new Date("2024-05-19T11:28:48.458Z"),
   updatedAt: new Date("2024-05-19T11:28:48.458Z"),
   courseId: "mfel1050",
   content: "Fyll inn boksen",
-  subContent: "LungeneLungeneLungeneLungeneLungene Lungene Lungene {{placeholder}} Lungene fungerer bedre fordi er redusert fungerer bedre fordi er redusert fungerer bedre fordi er redusert fungerer bedre fordi er redusert.",
+  subContent:
+    "LungeneLungeneLungeneLungeneLungene Lungene Lungene {{placeholder}} Lungene fungerer bedre fordi er redusert fungerer bedre fordi er redusert fungerer bedre fordi er redusert fungerer bedre fordi er redusert.",
   origin: "2006 Høst",
   imagePath: null,
   label: null,
@@ -349,13 +351,14 @@ export const SENTENCE_FILL_QUESTION: QuestionWithOptions = {
   ],
 }
 
-export const SENTENCE_SELECT_OPTION: QuestionWithOptions = {
+export const SENTENCE_SELECT_OPTION: QuestionWithDetails = {
   id: "6cb7544c-44d9-4af8-9f9d-fb2550671df4",
   createdAt: new Date("2024-05-19T11:28:48.458Z"),
   updatedAt: new Date("2024-05-19T11:28:48.458Z"),
   courseId: "mfel1050",
   content: "Velg riktig alternativ i boksen",
-  subContent: "A {{placeholder}} lungene fungerer bedre fordi er redusert fungerer bedre fordi er redusert fungerer bedre fordi er redusert fungerer bedre fordi er redusert fungerer bedre fordi er redusert fungerer bedre fordi er redusert.",
+  subContent:
+    "A {{placeholder}} lungene fungerer bedre fordi er redusert fungerer bedre fordi er redusert fungerer bedre fordi er redusert fungerer bedre fordi er redusert fungerer bedre fordi er redusert fungerer bedre fordi er redusert.",
   origin: "2006 Høst",
   imagePath: null,
   label: null,
@@ -399,7 +402,7 @@ export const SENTENCE_SELECT_OPTION: QuestionWithOptions = {
   ],
 }
 
-export const QUESTIONS: QuestionWithOptions[] = [
+export const QUESTIONS: QuestionWithDetails[] = [
   MULTIPLE_CHOICE_QUESTION,
   IMAGE_DRAG_AND_DROP_QUESTION,
   MATRIX_QUESTION,

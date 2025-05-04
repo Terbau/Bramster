@@ -1,4 +1,4 @@
-import type { QuestionWithOptions } from "@/types/question"
+import type { QuestionWithDetails } from "@/types/question"
 import { useCallback, useMemo, useState, type FC } from "react"
 import { Progress } from "../Progress"
 import Latex from "react-latex"
@@ -17,7 +17,7 @@ import { SentenceFill } from "./GameTypes/SentenceFill/SentenceFill"
 import { SentenceSelect } from "./GameTypes/SentenceSelect/SentenceSelect"
 
 export interface GameTypeProps {
-  question: QuestionWithOptions
+  question: QuestionWithDetails
   showAnswer: boolean
   navigateQuiz: (isNext: boolean) => void
 }
@@ -55,7 +55,7 @@ type QuestionState =
   | SentenceSelectQuestionState
 
 interface QuizGameProps {
-  questions: QuestionWithOptions[]
+  questions: QuestionWithDetails[]
   gameSession: GameSession
 }
 
@@ -199,7 +199,13 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
         optionId: currentQuestion.options[index].id,
       })
     },
-    [syncAnswer, currentQuestionIndex, showAnswer, navigateQuiz, currentQuestion.options]
+    [
+      syncAnswer,
+      currentQuestionIndex,
+      showAnswer,
+      navigateQuiz,
+      currentQuestion.options,
+    ]
   )
 
   const handleImageDragAndDropAnswer = useCallback(

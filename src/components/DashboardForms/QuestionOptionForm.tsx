@@ -197,3 +197,5 @@ export const QuestionOptionForm = forwardRef<
     )
   }
 )
+
+QuestionOptionForm.displayName = "QuestionOptionForm"

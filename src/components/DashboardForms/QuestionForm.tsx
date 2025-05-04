@@ -260,3 +260,5 @@ export const QuestionForm = forwardRef<QuestionFormHandle, QuestionFormProps>(
     )
   }
 )
+
+QuestionForm.displayName = "QuestionForm"

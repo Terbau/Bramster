@@ -13,6 +13,8 @@ import {
 } from "../ui/card"
 import type { Paginated } from "@/types/pagination"
 
+const HIDDEN_COURSES = ["OLDMFEL1010"]
+
 export const Courses = () => {
   const { data: courses, isLoading } = useQuery<Paginated<ExtendedCourse>>({
     queryKey: ["courses", 0, -1, "createdAt", "asc", ""],
@@ -23,9 +25,15 @@ export const Courses = () => {
     return <Spinner />
   }
 
+  const filteredCourses = courses?.results.filter(
+    (course) =>
+      course.totalQuestions > 0 &&
+      !HIDDEN_COURSES.includes(course.id.toUpperCase())
+  )
+
   return (
     <div className="grid auto-cols-fr lg:grid-cols-3 gap-4 sm:gap-8">
-      {courses?.results.map((course) => (
+      {filteredCourses?.map((course) => (
         <Link key={course.id} href={`/courses/${course.id}`}>
           <Card className="h-44 cursor-pointer hover:bg-gray-50 flex flex-col justify-between">
             <CardHeader>

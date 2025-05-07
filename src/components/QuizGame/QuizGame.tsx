@@ -15,6 +15,7 @@ import type { DroppedItems } from "./GameTypes/ImageDragAndDrop/ImageDragAndDrop
 import { Matrix } from "./GameTypes/Matrix/Matrix"
 import { SentenceFill } from "./GameTypes/SentenceFill/SentenceFill"
 import { SentenceSelect } from "./GameTypes/SentenceSelect/SentenceSelect"
+import { ReportErrorFormModal } from "../ReportErrorFormModal/ReportErrorFormModal"
 
 export interface GameTypeProps {
   question: QuestionWithDetails
@@ -91,6 +92,8 @@ const weightedDotDistribution = {
 
 export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
   const router = useRouter()
+  const [reportQuestionModalOpen, setReportQuestionModalOpen] = useState(false)
+
   const [lastGuessSyncSuccess, setLastGuessSyncSuccess] = useState<
     boolean | null
   >(null)
@@ -479,59 +482,82 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
   ])
 
   return (
-    <div>
-      <Progress
-        value={progress}
-        preNumber={amountQuestionsDone}
-        postNumber={amountQuestions}
+    <>
+      <ReportErrorFormModal
+        questionId={currentQuestion.id}
+        open={reportQuestionModalOpen}
+        onOpenChange={setReportQuestionModalOpen}
       />
+      <div>
+        <Progress
+          value={progress}
+          preNumber={amountQuestionsDone}
+          postNumber={amountQuestions}
+        />
 
-      <div className="mt-6 flex flex-row gap-x-2">
-        {getWeightElement(currentQuestion.weight ?? 0)}
-        {getAllOriginsBadge(currentQuestion.allOrigins ?? [])}
-        <div className="flex flex-row gap-x-2 ml-auto items-center">
-          {guessMutateIsPending && <Loader2 className="h-5 w-5 animate-spin" />}
-          {lastGuessSyncSuccess !== null &&
-            (lastGuessSyncSuccess ? (
-              <CircleCheck className="h-5 w-5" />
-            ) : (
-              <CircleX className="text-red-500 h-5 w-5" />
-            ))}
-          {currentQuestion.label && (
-            <Badge variant="outline">{currentQuestion.label}</Badge>
-          )}
+        <div className="mt-6 flex flex-row gap-x-2">
+          {getWeightElement(currentQuestion.weight ?? 0)}
+          {getAllOriginsBadge(currentQuestion.allOrigins ?? [])}
+          <div className="flex flex-row gap-x-2 ml-auto items-center">
+            {guessMutateIsPending && (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            )}
+            {lastGuessSyncSuccess !== null &&
+              (lastGuessSyncSuccess ? (
+                <CircleCheck className="h-5 w-5" />
+              ) : (
+                <CircleX className="text-red-500 h-5 w-5" />
+              ))}
+            {currentQuestion.label && (
+              <Badge variant="outline">{currentQuestion.label}</Badge>
+            )}
+          </div>
         </div>
-      </div>
-      <div className="mt-2">
-        <h3 className="text-2xl font-semibold">
-          <Latex>{getPartByLocale(currentQuestion.content, "nb_NO")}</Latex>
-        </h3>
-      </div>
-
-      {currentQuestionElement}
-
-      <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-between">
-        <div className="grid grid-cols-2 sm:flex sm:flex-row gap-x-2 w-full">
-          <Button
-            onClick={() => navigateQuiz(false)}
-            className="w-full sm:w-28"
-          >
-            Previous
-          </Button>
-          <Button onClick={() => navigateQuiz(true)} className="w-full sm:w-28">
-            Next
-          </Button>
+        <div className="mt-2">
+          <h3 className="text-2xl font-semibold">
+            <Latex>{getPartByLocale(currentQuestion.content, "nb_NO")}</Latex>
+          </h3>
         </div>
-        {amountQuestionsAnswered === amountQuestions &&
-          syncedCount === amountQuestions && (
-            <Button onClick={() => finishMutate()} className="w-full sm:w-32">
-              {finishIsLoading && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Finish
+
+        {currentQuestionElement}
+
+        <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-between">
+          <div className="grid grid-cols-2 sm:flex sm:flex-row gap-x-2 w-full">
+            <Button
+              onClick={() => navigateQuiz(false)}
+              className="w-full sm:w-28"
+            >
+              Previous
             </Button>
-          )}
+            <Button
+              onClick={() => navigateQuiz(true)}
+              className="w-full sm:w-28"
+            >
+              Next
+            </Button>
+          </div>
+          <div className="flex flex-row gap-x-2 items-center">
+            <Button
+              variant="ghost"
+              onClick={() => setReportQuestionModalOpen(true)}
+            >
+              Report error
+            </Button>
+            {amountQuestionsAnswered === amountQuestions &&
+              syncedCount === amountQuestions && (
+                <Button
+                  onClick={() => finishMutate()}
+                  className="w-full sm:w-32"
+                >
+                  {finishIsLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Finish
+                </Button>
+              )}
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   )
 }

@@ -2,6 +2,7 @@
 
 import { Inter as FontSans } from "next/font/google"
 import "./globals.css"
+import 'katex/dist/katex.min.css';
 import { cn } from "@/lib/utils"
 import NextAuthProvider from "@/lib/context/NextAuthProvider"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"

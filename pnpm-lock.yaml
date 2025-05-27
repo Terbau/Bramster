@@ -131,9 +131,9 @@ importers:
       react-hook-form:
         specifier: ^7.55.0
         version: 7.55.0(react@18.3.1)
-      react-latex:
-        specifier: ^2.0.0
-        version: 2.0.0
+      react-latex-next:
+        specifier: ^3.0.0
+        version: 3.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       tailwind-merge:
         specifier: ^2.3.0
         version: 2.3.0
@@ -2737,6 +2737,10 @@ packages:
     resolution: {integrity: sha512-NOKm8xhkzAjzFx8B2v5OAHT+u5pRQc2UCa2Vq9jYL/31o2wi9mxBA7LIFs3sV5VSC49z6pEhfbMULvShKj26WA==}
     engines: {node: '>= 6'}
 
+  commander@8.3.0:
+    resolution: {integrity: sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==}
+    engines: {node: '>= 12'}
+
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
@@ -3525,8 +3529,8 @@ packages:
     resolution: {integrity: sha512-ZZow9HBI5O6EPgSJLUb8n2NKgmVWTwCvHGwFuJlMjvLFqlGG6pjirPhtdsseaLZjSibD8eegzmYpUZwoIlj2cQ==}
     engines: {node: '>=4.0'}
 
-  katex@0.10.2:
-    resolution: {integrity: sha512-cQOmyIRoMloCoSIOZ1+gEwsksdJZ1EW4SWm3QzxSza/QsnZr6D4U1V9S4q+B/OLm2OQ8TCBecQ8MaIfnScI7cw==}
+  katex@0.16.22:
+    resolution: {integrity: sha512-XCHRdUw4lf3SKBaJe4EvgqIuWwkPSo9XoeO8GjQW94Bp7TWv9hNhzZjZ+OH9yf1UmLygb7DIT5GSFQiyt16zYg==}
     hasBin: true
 
   keyv@4.5.4:
@@ -4126,8 +4130,12 @@ packages:
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
 
-  react-latex@2.0.0:
-    resolution: {integrity: sha512-x17uDCfqBgR+5ZF/zplRCuHdEbX22CJlVipOqMUinRMoiOwh5fr3jbjD4zqVQ8pIs4AnF0BWPDR2S7Fyd8Snxw==}
+  react-latex-next@3.0.0:
+    resolution: {integrity: sha512-x70f1b1G7TronVigsRgKHKYYVUNfZk/3bciFyYX1lYLQH2y3/TXku3+5Vap8MDbJhtopePSYBsYWS6jhzIdz+g==}
+    engines: {node: '>=12', npm: '>=5'}
+    peerDependencies:
+      react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
 
   react-remove-scroll-bar@2.3.6:
     resolution: {integrity: sha512-DtSYaao4mBmX+HDo5YWYdBWQwYIQQshUV/dVxFxK+KM26Wjwp1gZ6rv6OC3oujI6Bfu6Xyg3TwK533AQutsn/g==}
@@ -7440,9 +7448,12 @@ snapshots:
 
   commander@12.0.0: {}
 
-  commander@2.20.3: {}
+  commander@2.20.3:
+    optional: true
 
   commander@4.1.1: {}
+
+  commander@8.3.0: {}
 
   concat-map@0.0.1: {}
 
@@ -8378,9 +8389,9 @@ snapshots:
       object.assign: 4.1.5
       object.values: 1.2.0
 
-  katex@0.10.2:
+  katex@0.16.22:
     dependencies:
-      commander: 2.20.3
+      commander: 8.3.0
 
   keyv@4.5.4:
     dependencies:
@@ -8923,9 +8934,11 @@ snapshots:
 
   react-is@17.0.2: {}
 
-  react-latex@2.0.0:
+  react-latex-next@3.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
-      katex: 0.10.2
+      katex: 0.16.22
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   react-remove-scroll-bar@2.3.6(@types/react@18.3.2)(react@18.3.1):
     dependencies:

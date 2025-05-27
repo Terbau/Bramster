@@ -1,7 +1,7 @@
 import type { QuestionWithDetails } from "@/types/question"
 import { useCallback, useMemo, useState, type FC } from "react"
 import { Progress } from "../Progress"
-import Latex from "react-latex"
+import Latex from "react-latex-next"
 import { cn, compareOrigins, getPartByLocale } from "@/lib/utils"
 import { Button } from "../ui/button"
 import { CircleCheck, CircleX, Loader2 } from "lucide-react"
@@ -520,7 +520,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
         </div>
         <div className="mt-2">
           <h3 className="text-2xl font-semibold">
-            <Latex>{getPartByLocale(currentQuestion.content, "nb_NO")}</Latex>
+            <Latex>{getPartByLocale(currentQuestion.content, "nb_NO") ?? ""}</Latex>
           </h3>
         </div>
 

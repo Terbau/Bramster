@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react"
-import Latex from "react-latex"
+import Latex from "react-latex-next"
 import type { GameTypeProps } from "../../QuizGame"
 import { CircleCheck, CircleX } from "lucide-react"
 import Image from "next/image"
@@ -112,7 +112,7 @@ export const MultipleChoice = ({
           )}
         >
           <span className="text-left">
-            <Latex>{getPartByLocale(option.content, "nb_NO")}</Latex>
+            <Latex>{getPartByLocale(option.content, "nb_NO") ?? ""}</Latex>
           </span>
           {answeredIndex === index &&
             (option.correct ? (

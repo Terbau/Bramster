@@ -30,7 +30,7 @@ import type { QuestionWithDetails } from "@/types/question"
 import { useQuery } from "@tanstack/react-query"
 import { CircleCheck, CircleX } from "lucide-react"
 import { useSession } from "next-auth/react"
-import Latex from "react-latex"
+import Latex from "react-latex-next"
 
 export default function GameResultsPage({
   params,
@@ -233,13 +233,13 @@ export default function GameResultsPage({
             return (
               <TableRow key={question.id} className="h-full text-xs sm:text-sm">
                 <TableCell>
-                  <Latex>{getPartByLocale(question.content, "nb_NO")}</Latex>
+                  <Latex>{getPartByLocale(question.content, "nb_NO") ?? ""}</Latex>
                 </TableCell>
                 <TableCell>
-                  <Latex>{getPartByLocale(yourGuessText, "nb_NO")}</Latex>
+                  <Latex>{getPartByLocale(yourGuessText, "nb_NO") ?? ""}</Latex>
                 </TableCell>
                 <TableCell>
-                  <Latex>{getPartByLocale(correctOptionText, "nb_NO")}</Latex>
+                  <Latex>{getPartByLocale(correctOptionText, "nb_NO") ?? ""}</Latex>
                 </TableCell>
                 <TableCell className="h-full">
                   {wasCorrect ? (

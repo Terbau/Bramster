@@ -405,6 +405,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
       case "MULTIPLE_CHOICE":
         return (
           <MultipleChoice
+            key={currentQuestion.id}
             question={currentQuestion}
             showAnswer={showAnswer}
             navigateQuiz={navigateQuiz}
@@ -418,6 +419,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
       case "MATRIX":
         return (
           <Matrix
+            key={currentQuestion.id}
             question={currentQuestion}
             showAnswer={showAnswer}
             navigateQuiz={navigateQuiz}
@@ -430,6 +432,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
       case "SENTENCE_FILL":
         return (
           <SentenceFill
+            key={currentQuestion.id}
             question={currentQuestion}
             showAnswer={showAnswer}
             navigateQuiz={navigateQuiz}
@@ -443,6 +446,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
       case "SENTENCE_SELECT":
         return (
           <SentenceSelect
+            key={currentQuestion.id}
             question={currentQuestion}
             showAnswer={showAnswer}
             navigateQuiz={navigateQuiz}
@@ -456,6 +460,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
       case "IMAGE_DRAG_AND_DROP":
         return (
           <ImageDragAndDrop
+            key={currentQuestion.id}
             question={currentQuestion}
             showAnswer={showAnswer}
             navigateQuiz={navigateQuiz}

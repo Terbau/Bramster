@@ -105,3 +105,51 @@ export const ExtendedGameSessionWithResultsSchema =
 export type ExtendedGameSessionWithResults = z.infer<
   typeof ExtendedGameSessionWithResultsSchema
 >
+
+export const CourseStatsSchema = z.object({
+  courseId: z.string(),
+  courseName: z.string(),
+  sessionCount: z.number(),
+  totalQuestions: z.number(),
+  totalCorrect: z.number(),
+  accuracy: z.number(),
+  lastAttempted: z.string(),
+})
+export type CourseStats = z.infer<typeof CourseStatsSchema>
+
+export const UserStatisticsSchema = z.object({
+  totalSessions: z.number(),
+  totalQuestions: z.number(),
+  totalCorrect: z.number(),
+  overallAccuracy: z.number(),
+  courseStats: z.array(CourseStatsSchema),
+})
+export type UserStatistics = z.infer<typeof UserStatisticsSchema>
+
+export type CourseSessionStat = {
+  sessionId: string
+  finishedAt: string
+  origin: string
+  totalQuestions: number
+  totalCorrect: number
+  accuracy: number
+}
+
+export type CourseOriginStat = {
+  origin: string
+  sessionCount: number
+  totalQuestions: number
+  totalCorrect: number
+  accuracy: number
+}
+
+export type CourseDetailStats = {
+  courseId: string
+  courseName: string
+  totalSessions: number
+  totalQuestions: number
+  totalCorrect: number
+  overallAccuracy: number
+  sessions: CourseSessionStat[]
+  originStats: CourseOriginStat[]
+}

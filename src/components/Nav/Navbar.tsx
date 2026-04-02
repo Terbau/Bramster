@@ -12,7 +12,7 @@ import {
 } from "../ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "../ui/avatar"
 import { AvatarImage } from "@radix-ui/react-avatar"
-import { AreaChart, LogOut } from "lucide-react"
+import { AreaChart, BarChart2, LogOut } from "lucide-react"
 
 interface NavLink {
   label: string
@@ -76,6 +76,12 @@ export const Navbar = () => {
                     <Link href="/my-results" className="">
                       <AreaChart className="mr-2 h-4 w-4" />
                       <span>My results</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/statistics">
+                      <BarChart2 className="mr-2 h-4 w-4" />
+                      <span>Statistics</span>
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>

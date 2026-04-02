@@ -226,3 +226,264 @@ export const getTotalGameSessionsForUser = async (
 
   return row ? Number(row.count) : 0
 }
+
+export type RawCourseStatRow = {
+  courseId: string
+  courseName: string
+  sessionCount: number
+  totalCorrect: number
+  totalQuestions: number
+  lastAttempted: Date
+}
+
+export const getGameStatsForUser = async (
+  userId: User["id"]
+): Promise<RawCourseStatRow[]> => {
+  const allSessions = await db
+    .selectFrom("gameSession")
+    .selectAll("gameSession")
+    .innerJoin("course", "gameSession.courseId", "course.id")
+    .select(["course.name as courseName"])
+    .where("gameSession.userId", "=", userId)
+    .where("gameSession.finishedAt", "is not", null)
+    .execute()
+
+  if (allSessions.length === 0) return []
+
+  const sessionIds = allSessions.map((s) => s.id)
+
+  const allGuesses = (await db
+    .selectFrom("guess")
+    .selectAll()
+    .where("gameSessionId", "in", sessionIds)
+    .execute()) as Guess[]
+
+  if (allGuesses.length === 0) {
+    const courseMap = new Map<string, RawCourseStatRow>()
+    for (const session of allSessions) {
+      const finishedAt = session.finishedAt ?? new Date()
+      const existing = courseMap.get(session.courseId)
+      if (!existing) {
+        courseMap.set(session.courseId, {
+          courseId: session.courseId,
+          courseName: (session as typeof session & { courseName: string }).courseName,
+          sessionCount: 1,
+          totalCorrect: 0,
+          totalQuestions: 0,
+          lastAttempted: finishedAt,
+        })
+      } else {
+        existing.sessionCount++
+        if (finishedAt > existing.lastAttempted) existing.lastAttempted = finishedAt
+      }
+    }
+    return Array.from(courseMap.values())
+  }
+
+  const questionIds = [...new Set(allGuesses.map((g) => g.questionId))]
+  const questions = await getQuestionsWithOptionsIgnoreWeight(
+    undefined,
+    undefined,
+    -1,
+    false,
+    questionIds
+  )
+  const questionsMap = new Map(questions.map((q) => [q.id, q]))
+
+  const guessesBySession = new Map<string, Guess[]>()
+  for (const guess of allGuesses) {
+    const list = guessesBySession.get(guess.gameSessionId) ?? []
+    list.push(guess)
+    guessesBySession.set(guess.gameSessionId, list)
+  }
+
+  const courseMap = new Map<string, RawCourseStatRow>()
+  for (const session of allSessions) {
+    const guesses = guessesBySession.get(session.id) ?? []
+    const finishedAt = session.finishedAt ?? new Date()
+    const courseName = (session as typeof session & { courseName: string }).courseName
+
+    let sessionCorrect = 0
+    for (const guess of guesses) {
+      const question = questionsMap.get(guess.questionId)
+      if (!question) continue
+      const answerData = guess.answerData
+      let isCorrect = false
+
+      switch (question.type) {
+        case "MULTIPLE_CHOICE":
+          isCorrect = question.options.some(
+            (o) => o.id === (answerData as MultipleChoiceAnswer).optionId && o.correct
+          )
+          break
+        case "MATRIX":
+          isCorrect = (answerData as MatrixAnswer).optionIds.every((id) =>
+            question.options.some((o) => o.id === id && o.correct)
+          )
+          break
+        case "SENTENCE_FILL":
+          isCorrect = question.options.some(
+            (o) =>
+              o.content.toLowerCase() ===
+                (answerData as SentenceFillAnswer).content.toLowerCase() &&
+              o.correct
+          )
+          break
+        case "SENTENCE_SELECT":
+          isCorrect = question.options.some(
+            (o) =>
+              o.id === (answerData as SentenceSelectAnswer).optionId && o.correct
+          )
+          break
+        case "IMAGE_DRAG_AND_DROP":
+          isCorrect = Object.entries(
+            (answerData as ImageDragAndDropAnswer).dragMap
+          ).every(([droppableId, draggableId]) => droppableId === draggableId)
+          break
+      }
+      if (isCorrect) sessionCorrect++
+    }
+
+    const existing = courseMap.get(session.courseId)
+    if (!existing) {
+      courseMap.set(session.courseId, {
+        courseId: session.courseId,
+        courseName,
+        sessionCount: 1,
+        totalCorrect: sessionCorrect,
+        totalQuestions: guesses.length,
+        lastAttempted: finishedAt,
+      })
+    } else {
+      existing.sessionCount++
+      existing.totalCorrect += sessionCorrect
+      existing.totalQuestions += guesses.length
+      if (finishedAt > existing.lastAttempted) existing.lastAttempted = finishedAt
+    }
+  }
+
+  return Array.from(courseMap.values())
+}
+
+export type RawSessionStatRow = {
+  sessionId: string
+  finishedAt: Date
+  origin: string
+  totalCorrect: number
+  totalQuestions: number
+}
+
+export const getCourseSessionStatsForUser = async (
+  userId: User["id"],
+  courseId: string
+): Promise<{ courseName: string; sessions: RawSessionStatRow[] }> => {
+  const allSessions = await db
+    .selectFrom("gameSession")
+    .selectAll("gameSession")
+    .innerJoin("course", "gameSession.courseId", "course.id")
+    .select(["course.name as courseName"])
+    .where("gameSession.userId", "=", userId)
+    .where("gameSession.courseId", "=", courseId)
+    .where("gameSession.finishedAt", "is not", null)
+    .orderBy("gameSession.finishedAt", "asc")
+    .execute()
+
+  if (allSessions.length === 0) return { courseName: "", sessions: [] }
+
+  const courseName = (
+    allSessions[0] as typeof allSessions[0] & { courseName: string }
+  ).courseName
+  const sessionIds = allSessions.map((s) => s.id)
+
+  const allGuesses = (await db
+    .selectFrom("guess")
+    .selectAll()
+    .where("gameSessionId", "in", sessionIds)
+    .execute()) as Guess[]
+
+  if (allGuesses.length === 0) {
+    return {
+      courseName,
+      sessions: allSessions.map((s) => ({
+        sessionId: s.id,
+        finishedAt: s.finishedAt ?? new Date(),
+        origin: s.origin,
+        totalCorrect: 0,
+        totalQuestions: 0,
+      })),
+    }
+  }
+
+  const questionIds = [...new Set(allGuesses.map((g) => g.questionId))]
+  const questions = await getQuestionsWithOptionsIgnoreWeight(
+    undefined,
+    undefined,
+    -1,
+    false,
+    questionIds
+  )
+  const questionsMap = new Map(questions.map((q) => [q.id, q]))
+
+  const guessesBySession = new Map<string, Guess[]>()
+  for (const guess of allGuesses) {
+    const list = guessesBySession.get(guess.gameSessionId) ?? []
+    list.push(guess)
+    guessesBySession.set(guess.gameSessionId, list)
+  }
+
+  const sessions: RawSessionStatRow[] = []
+  for (const session of allSessions) {
+    const guesses = guessesBySession.get(session.id) ?? []
+    let sessionCorrect = 0
+
+    for (const guess of guesses) {
+      const question = questionsMap.get(guess.questionId)
+      if (!question) continue
+      const answerData = guess.answerData
+      let isCorrect = false
+
+      switch (question.type) {
+        case "MULTIPLE_CHOICE":
+          isCorrect = question.options.some(
+            (o) => o.id === (answerData as MultipleChoiceAnswer).optionId && o.correct
+          )
+          break
+        case "MATRIX":
+          isCorrect = (answerData as MatrixAnswer).optionIds.every((id) =>
+            question.options.some((o) => o.id === id && o.correct)
+          )
+          break
+        case "SENTENCE_FILL":
+          isCorrect = question.options.some(
+            (o) =>
+              o.content.toLowerCase() ===
+                (answerData as SentenceFillAnswer).content.toLowerCase() &&
+              o.correct
+          )
+          break
+        case "SENTENCE_SELECT":
+          isCorrect = question.options.some(
+            (o) =>
+              o.id === (answerData as SentenceSelectAnswer).optionId && o.correct
+          )
+          break
+        case "IMAGE_DRAG_AND_DROP":
+          isCorrect = Object.entries(
+            (answerData as ImageDragAndDropAnswer).dragMap
+          ).every(([droppableId, draggableId]) => droppableId === draggableId)
+          break
+      }
+      if (isCorrect) sessionCorrect++
+    }
+
+    sessions.push({
+      sessionId: session.id,
+      finishedAt: session.finishedAt ?? new Date(),
+      origin: session.origin,
+      totalCorrect: sessionCorrect,
+      totalQuestions: guesses.length,
+    })
+  }
+
+  return { courseName, sessions }
+}

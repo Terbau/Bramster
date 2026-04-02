@@ -1,5 +1,7 @@
 import { authOptions } from "@/lib/auth"
+import { sendQuestionErrorReportEmail } from "@/lib/email"
 import { createQuestionErrorReport } from "@/lib/functions/report"
+import { getQuestion } from "@/lib/functions/question"
 import { StrippedQuestionErrorReportCreateSchema } from "@/types/report"
 import { getServerSession } from "next-auth"
 import { NextResponse, type NextRequest } from "next/server"
@@ -26,10 +28,21 @@ export async function POST(request: NextRequest, { params }: QuestionParams) {
     )
   }
 
-  const report = await createQuestionErrorReport({
-    createdBy: session.user.id,
+  const [report, question] = await Promise.all([
+    createQuestionErrorReport({
+      createdBy: session.user.id,
+      questionId,
+      ...questionData,
+    }),
+    getQuestion(questionId),
+  ])
+
+  sendQuestionErrorReportEmail({
     questionId,
-    ...questionData,
-  })
+    questionContent: question?.content ?? "(question not found)",
+    reportContent: questionData.content,
+    reporterEmail: session.user.email ?? session.user.id,
+  }).catch((err) => console.error("Failed to send error report email:", err))
+
   return NextResponse.json(report)
 }

@@ -24,7 +24,7 @@ export const MULTIPLE_CHOICE_QUESTION: QuestionWithDetails = {
   imageWidth: 1678,
   label: null,
   type: "MULTIPLE_CHOICE",
-  allOrigins: ["2006 Høst"],
+  allOrigins: [{ origin: "2006 Høst", similarity: 1 }],
   weight: -1,
   options: [
     {
@@ -76,7 +76,7 @@ export const IMAGE_DRAG_AND_DROP_QUESTION: QuestionWithDetails = {
   imageWidth: 872,
   label: null,
   type: "IMAGE_DRAG_AND_DROP",
-  allOrigins: ["2006 Høst"],
+  allOrigins: [{ origin: "2006 Høst", similarity: 1 }],
   weight: -1,
   options: [
     {
@@ -227,7 +227,7 @@ export const MATRIX_QUESTION: QuestionWithDetails = {
   imageWidth: 1678,
   label: null,
   type: "MATRIX",
-  allOrigins: ["2006 Høst"],
+  allOrigins: [{ origin: "2006 Høst", similarity: 1 }],
   weight: -1,
   options: [
     {
@@ -312,7 +312,7 @@ export const SENTENCE_FILL_QUESTION: QuestionWithDetails = {
   imagePath: null,
   label: null,
   type: "SENTENCE_FILL",
-  allOrigins: ["2006 Høst"],
+  allOrigins: [{ origin: "2006 Høst", similarity: 1 }],
   weight: -1,
   options: [
     {
@@ -363,7 +363,7 @@ export const SENTENCE_SELECT_OPTION: QuestionWithDetails = {
   imagePath: null,
   label: null,
   type: "SENTENCE_SELECT",
-  allOrigins: ["2006 Høst"],
+  allOrigins: [{ origin: "2006 Høst", similarity: 1 }],
   weight: -1,
   options: [
     {

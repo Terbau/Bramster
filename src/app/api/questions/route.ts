@@ -5,6 +5,7 @@ import {
   getQuestions,
   getQuestionsAmount,
 } from "@/lib/functions/question"
+import { computeSimilaritiesForNewQuestion } from "@/lib/similarity"
 import { parseKey } from "@/lib/utils"
 import { SortDirectionSchema, type Paginated } from "@/types/pagination"
 import {
@@ -75,6 +76,11 @@ export async function POST(request: NextRequest) {
   const questionData = QuestionCreateSchema.parse(body)
 
   const question = await createQuestion(questionData)
+
+  computeSimilaritiesForNewQuestion(question.id).catch((err) =>
+    console.error("Failed to compute similarities for new question:", err)
+  )
+
   return NextResponse.json(question)
 }
 

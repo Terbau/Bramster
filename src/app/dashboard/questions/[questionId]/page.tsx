@@ -16,11 +16,20 @@ import { useCreateQuestionOption } from "@/hooks/useCreateQuestionOption"
 import { useUpdateQuestionOption } from "@/hooks/useUpdateQuestionOption"
 import { useDeleteQuestionOption } from "@/hooks/useDeleteQuestionOption"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import {
   QuestionOptionCreateSchema,
   type QuestionOption,
 } from "@/types/question"
+import { useGetSimilarQuestions } from "@/hooks/useGetSimilarQuestions"
 import {
   type EditorQuestionOption,
   INTERACTIVE_EDITORS,
@@ -53,6 +62,8 @@ export default function DashboardQuestionsDetailPage({
   const { data: questionData, isLoading: questionIsLoading } = useGetQuestion({
     questionId: params.questionId,
   })
+
+  const { data: similarQuestions } = useGetSimilarQuestions(params.questionId)
 
   const isOptionId = useCallback(
     (id: string | undefined) => {
@@ -374,6 +385,38 @@ export default function DashboardQuestionsDetailPage({
           )}
         </TabsContent>
       </Tabs>
+
+      <Card>
+        <CardHeader className="px-4 pt-4 pb-2 sm:px-6 sm:pt-6">
+          <CardTitle className="text-base">Similar questions</CardTitle>
+          <CardDescription className="text-xs">
+            Questions with similar content found via semantic similarity
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
+          {!similarQuestions || similarQuestions.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No similar questions found</p>
+          ) : (
+            <div className="flex flex-col divide-y">
+              {similarQuestions.map((q) => (
+                <Link
+                  key={q.id}
+                  href={`/dashboard/questions/${q.id}`}
+                  className="flex items-start justify-between gap-4 py-3 hover:bg-muted/40 -mx-2 px-2 rounded-md transition-colors"
+                >
+                  <div className="flex flex-col gap-1 min-w-0">
+                    <p className="text-sm line-clamp-2 text-foreground">{q.content}</p>
+                    <p className="text-xs text-muted-foreground">{q.origin} · {q.courseId.toUpperCase()}</p>
+                  </div>
+                  <Badge variant="secondary" className="shrink-0 tabular-nums">
+                    {Math.round(q.similarity * 100)}%
+                  </Badge>
+                </Link>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

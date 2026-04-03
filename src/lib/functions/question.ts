@@ -97,6 +97,23 @@ export const getQuestion = async (
   return question
 }
 
+export type SimilarQuestion = Question & { similarity: number }
+
+export const getSimilarQuestions = async (
+  questionId: Question["id"]
+): Promise<SimilarQuestion[]> => {
+  const rows = await db
+    .selectFrom("questionSimilarity")
+    .innerJoin("question", "question.id", "questionSimilarity.similarQuestionId")
+    .selectAll("question")
+    .select("questionSimilarity.similarity")
+    .where("questionSimilarity.questionId", "=", questionId)
+    .orderBy("questionSimilarity.similarity", "desc")
+    .execute()
+
+  return rows as SimilarQuestion[]
+}
+
 export const createQuestions = async (
   questions: QuestionCreate[]
 ): Promise<Question[]> => {
@@ -319,7 +336,7 @@ export const getQuestionsWithOptionsIgnoreWeight = async (
 
   return questions.map((question) => ({
     ...question,
-    allOrigins: [],
+    allOrigins: [] as { origin: string; similarity: number }[],
   }))
 }
 
@@ -335,15 +352,22 @@ export const getQuestionsWithOptions = async (
     .selectFrom("question")
     .selectAll("question")
     .leftJoin("questionOption", "question.id", "questionOption.questionId")
-    .select(({ selectFrom, ref }) =>
-      selectFrom("question as q2")
-        .select(() => [
-          sql<string[]>`COALESCE(json_agg(DISTINCT q2.origin), '[]')`.as(
-            "allOrigins"
-          ),
-        ])
-        .where("q2.content", "=", ref("question.content"))
-        .as("allOrigins")
+    .select(({ ref }) =>
+      sql<{ origin: string; similarity: number }[]>`COALESCE((
+        SELECT json_agg(origin_data)
+        FROM (
+          SELECT origin, MAX(similarity) AS similarity
+          FROM (
+            SELECT ${ref("question.origin")} AS origin, 1.0::float4 AS similarity
+            UNION ALL
+            SELECT q2.origin, qs.similarity
+            FROM question_similarity qs
+            JOIN question q2 ON q2.id = qs.similar_question_id
+            WHERE qs.question_id = ${ref("question.id")}
+          ) combined
+          GROUP BY origin
+        ) origin_data
+      ), '[]')`.as("allOrigins")
     )
     // Dynamic weight per question based on answerData and question type
     .select(({ ref }) => [

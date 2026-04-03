@@ -10,6 +10,7 @@ import {
   HelpCircle,
   LayoutDashboard,
   Plus,
+  Wrench,
 } from "lucide-react"
 
 interface DashboardPageLink {
@@ -19,32 +20,52 @@ interface DashboardPageLink {
   children?: DashboardPageLink[]
 }
 
-const dashboardPageLinks: DashboardPageLink[] = [
+interface DashboardSection {
+  label: string
+  links: DashboardPageLink[]
+}
+
+const dashboardSections: DashboardSection[] = [
   {
-    label: "Courses",
-    href: "/dashboard/courses",
-    icon: <BookOpen className="h-4 w-4" />,
-    children: [
+    label: "Content",
+    links: [
       {
-        label: "Create",
-        href: "/dashboard/courses/create",
-        icon: <Plus className="h-3.5 w-3.5" />,
+        label: "Courses",
+        href: "/dashboard/courses",
+        icon: <BookOpen className="h-4 w-4" />,
+        children: [
+          {
+            label: "Create",
+            href: "/dashboard/courses/create",
+            icon: <Plus className="h-3.5 w-3.5" />,
+          },
+        ],
+      },
+      {
+        label: "Questions",
+        href: "/dashboard/questions",
+        icon: <HelpCircle className="h-4 w-4" />,
+        children: [
+          {
+            label: "Create",
+            href: "/dashboard/questions/create",
+            icon: <Plus className="h-3.5 w-3.5" />,
+          },
+        ],
       },
     ],
   },
   {
-    label: "Questions",
-    href: "/dashboard/questions",
-    icon: <HelpCircle className="h-4 w-4" />,
-    children: [
+    label: "Tools",
+    links: [
       {
-        label: "Create",
-        href: "/dashboard/questions/create",
-        icon: <Plus className="h-3.5 w-3.5" />,
+        label: "Tools",
+        href: "/dashboard/tools",
+        icon: <Wrench className="h-4 w-4" />,
       },
     ],
   },
-] as const
+]
 
 function SidebarLink({
   link,
@@ -104,11 +125,13 @@ function SidebarLink({
   )
 }
 
+const allLinks = dashboardSections.flatMap((s) => s.links)
+
 function getPageLabel(currentHref: string): string {
-  const match = dashboardPageLinks.find((link) => link.href === currentHref)
+  const match = allLinks.find((link) => link.href === currentHref)
   if (match) return match.label
 
-  for (const link of dashboardPageLinks) {
+  for (const link of allLinks) {
     const child = link.children?.find((c) => c.href === currentHref)
     if (child) return `${link.label} — ${child.label}`
   }
@@ -157,16 +180,23 @@ export default function DashboardLayout({
           </div>
 
           {/* Nav links */}
-          <nav className="p-2">
-            <ul className="space-y-0.5">
-              {dashboardPageLinks.map((link) => (
-                <SidebarLink
-                  key={link.href}
-                  link={link}
-                  currentHref={currentHref}
-                />
-              ))}
-            </ul>
+          <nav className="p-2 space-y-3">
+            {dashboardSections.map((section) => (
+              <div key={section.label}>
+                <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {section.label}
+                </p>
+                <ul className="space-y-0.5">
+                  {section.links.map((link) => (
+                    <SidebarLink
+                      key={link.href}
+                      link={link}
+                      currentHref={currentHref}
+                    />
+                  ))}
+                </ul>
+              </div>
+            ))}
           </nav>
         </div>
       </aside>

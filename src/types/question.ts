@@ -75,9 +75,16 @@ export type QuestionWithOptionsCreate = z.infer<
   typeof QuestionWithOptionsCreateSchema
 >
 
+export const OriginSimilaritySchema = z.object({
+  origin: z.string(),
+  similarity: z.number(),
+})
+
+export type OriginSimilarity = z.infer<typeof OriginSimilaritySchema>
+
 export const QuestionWithDetailsSchema = QuestionWithOptionsSchema.extend({
   weight: z.number().nullable(),
-  allOrigins: z.array(z.string()).nullable(),
+  allOrigins: z.array(OriginSimilaritySchema).nullable(),
 })
 
 export type QuestionWithDetails = z.infer<typeof QuestionWithDetailsSchema>

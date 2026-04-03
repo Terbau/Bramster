@@ -388,11 +388,13 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
     )
   }
 
-  const getAllOriginsBadge = (allOrigins: string[]) => {
-    allOrigins.sort((a, b) => compareOrigins(a, b))
-    const text = `This question was present in the following exams: ${allOrigins.join(
-      ", "
-    )}`
+  const getAllOriginsBadge = (allOrigins: { origin: string; similarity: number }[]) => {
+    const sorted = [...allOrigins].sort((a, b) => compareOrigins(a.origin, b.origin))
+    const lines = sorted.map(({ origin, similarity }) => {
+      const pct = Math.round(similarity * 100)
+      return pct >= 100 ? origin : `${origin} (${pct}% match)`
+    })
+    const text = `This question was present in the following exams: ${lines.join(", ")}`
     return (
       <Tooltip text={text}>
         <Badge variant="outline">Exams: {allOrigins.length}</Badge>

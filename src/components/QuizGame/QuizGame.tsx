@@ -1,6 +1,6 @@
 import type { QuestionWithDetails } from "@/types/question"
 import { useCallback, useMemo, useState, type FC } from "react"
-import { Progress } from "../Progress"
+import { SegmentedProgress } from "../SegmentedProgress"
 import Latex from "react-latex-next"
 import { cn, compareOrigins, getPartByLocale } from "@/lib/utils"
 import { Button } from "../ui/button"
@@ -26,6 +26,7 @@ export interface GameTypeProps {
 interface QuestionStateBase {
   showAnswer: boolean
   hasAnswered: boolean
+  isCorrect?: boolean
 }
 
 interface MultipleChoiceQuestionState extends QuestionStateBase {
@@ -89,6 +90,54 @@ const weightedDotDistribution = {
     tooltip: "This question is easy for you",
   },
 } as const
+
+// Helper function to check if a multiple choice answer is correct
+const isMultipleChoiceCorrect = (
+  question: QuestionWithDetails,
+  selectedIndex: number
+): boolean => {
+  if (selectedIndex < 0 || selectedIndex >= question.options.length) {
+    return false
+  }
+  return question.options[selectedIndex]?.correct ?? false
+}
+
+// Helper function to check if a matrix answer is correct
+const isMatrixCorrect = (
+  question: QuestionWithDetails,
+  selectedOptionIds: string[]
+): boolean => {
+  const correctOptionIds = question.options
+    .filter((opt) => opt.correct)
+    .map((opt) => opt.id)
+
+  if (selectedOptionIds.length !== correctOptionIds.length) {
+    return false
+  }
+
+  return selectedOptionIds.every((id) => correctOptionIds.includes(id))
+}
+
+// Helper function to check if a sentence select answer is correct
+const isSentenceSelectCorrect = (
+  question: QuestionWithDetails,
+  selectedOptionId: string
+): boolean => {
+  const selectedOption = question.options.find(
+    (opt) => opt.id === selectedOptionId
+  )
+  return selectedOption?.correct ?? false
+}
+
+// Helper function to check if image drag and drop is correct
+// Returns true if all items were dropped correctly
+const isImageDragAndDropCorrect = (
+  question: QuestionWithDetails,
+  droppedItems: DroppedItems
+): boolean => {
+  // Check that all drops are correct (key === value)
+  return Object.entries(droppedItems).every(([key, value]) => key === value)
+}
 
 export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
   const router = useRouter()
@@ -197,6 +246,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
         state.showAnswer = true
         state.hasAnswered = true
         state.answeredIndex = index
+        state.isCorrect = isMultipleChoiceCorrect(currentQuestion, index)
 
         return newQuestionStates
       })
@@ -210,7 +260,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
       currentQuestionIndex,
       showAnswer,
       navigateQuiz,
-      currentQuestion.options,
+      currentQuestion,
     ]
   )
 
@@ -229,6 +279,10 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
         state.showAnswer = true
         state.hasAnswered = true
         state.droppedItems = droppedItems
+        state.isCorrect = isImageDragAndDropCorrect(
+          currentQuestion,
+          droppedItems
+        )
 
         return newQuestionStates
       })
@@ -242,7 +296,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
 
       syncAnswer({ dragMap: droppedItems, amountCorrect, amountIncorrect })
     },
-    [syncAnswer, currentQuestionIndex, showAnswer]
+    [syncAnswer, currentQuestionIndex, showAnswer, currentQuestion]
   )
 
   const handleMatrixAnswer = useCallback(
@@ -260,6 +314,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
         state.showAnswer = true
         state.hasAnswered = true
         state.selectedOptionIds = selectedOptionIds
+        state.isCorrect = isMatrixCorrect(currentQuestion, selectedOptionIds)
 
         return newQuestionStates
       })
@@ -268,7 +323,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
         optionIds: selectedOptionIds,
       })
     },
-    [syncAnswer, currentQuestionIndex, showAnswer]
+    [syncAnswer, currentQuestionIndex, showAnswer, currentQuestion]
   )
 
   const handleSentenceFillAnswer = useCallback(
@@ -286,6 +341,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
         state.showAnswer = true
         state.hasAnswered = true
         state.answeredContent = content
+        // Note: isCorrect is not set for SENTENCE_FILL as it requires server-side validation
 
         return newQuestionStates
       })
@@ -311,6 +367,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
         state.showAnswer = true
         state.hasAnswered = true
         state.answeredOptionId = optionId
+        state.isCorrect = isSentenceSelectCorrect(currentQuestion, optionId)
 
         return newQuestionStates
       })
@@ -318,7 +375,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
         optionId,
       })
     },
-    [syncAnswer, currentQuestionIndex, showAnswer]
+    [syncAnswer, currentQuestionIndex, showAnswer, currentQuestion]
   )
 
   const handleSetLastGuessSyncSuccess = (value: boolean | null) => {
@@ -388,13 +445,19 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
     )
   }
 
-  const getAllOriginsBadge = (allOrigins: { origin: string; similarity: number }[]) => {
-    const sorted = [...allOrigins].sort((a, b) => compareOrigins(a.origin, b.origin))
+  const getAllOriginsBadge = (
+    allOrigins: { origin: string; similarity: number }[]
+  ) => {
+    const sorted = [...allOrigins].sort((a, b) =>
+      compareOrigins(a.origin, b.origin)
+    )
     const lines = sorted.map(({ origin, similarity }) => {
       const pct = Math.round(similarity * 100)
       return pct >= 100 ? origin : `${origin} (${pct}% match)`
     })
-    const text = `This question was present in the following exams: ${lines.join(", ")}`
+    const text = `This question was present in the following exams: ${lines.join(
+      ", "
+    )}`
     return (
       <Tooltip text={text}>
         <Badge variant="outline">Exams: {allOrigins.length}</Badge>
@@ -496,10 +559,13 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
         onOpenChange={setReportQuestionModalOpen}
       />
       <div>
-        <Progress
-          value={progress}
-          preNumber={amountQuestionsDone}
-          postNumber={amountQuestions}
+        <SegmentedProgress
+          segments={questionStates.map((state) => ({
+            answered: state.hasAnswered,
+            correct: state.isCorrect,
+          }))}
+          currentIndex={currentQuestionIndex}
+          onSegmentClick={(index) => setCurrentQuestionIndex(index)}
         />
 
         <div className="mt-6 flex flex-row gap-x-2">
@@ -522,7 +588,9 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
         </div>
         <div className="mt-2">
           <h3 className="text-2xl font-semibold">
-            <Latex>{getPartByLocale(currentQuestion.content, "nb_NO") ?? ""}</Latex>
+            <Latex>
+              {getPartByLocale(currentQuestion.content, "nb_NO") ?? ""}
+            </Latex>
           </h3>
         </div>
 

@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "type-check": "tsc --noEmit",
     "lint": "npx @biomejs/biome lint ./src",
     "lint:fix": "npx @biomejs/biome check --apply ./src",
     "migrate": "dotenv -e .env -- ts-node ./tools/migrator/index.ts",

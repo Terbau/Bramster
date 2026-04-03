@@ -33,13 +33,14 @@ export const Droppable = ({
   const styles: CSSProperties = {
     ...style,
     minWidth: minWidthPx ? `${minWidthPx}px` : undefined,
+    touchAction: "none",
   }
 
   return (
     <li
       ref={setNodeRef}
       className={cn(
-        "min-w-32 w-fit text-xs sm:text-base h-4 sm:h-7 rounded-sm bg-slate-100 border border-dashed border-slate-300 whitespace-nowrap px-1 flex items-center justify-center relative",
+        "min-w-32 w-fit text-xs select-none sm:text-base h-4 sm:h-7 rounded-sm bg-slate-100 border border-dashed border-slate-300 whitespace-nowrap px-1 flex items-center justify-center relative",
         { "border-slate-400 bg-slate-200": isOver },
         { "bg-slate-200 border-solid": !!droppedId },
         { "pr-4": minWidthPx === undefined && !showAnswer && !!droppedId },

@@ -10,7 +10,10 @@ interface DraggableProps extends ComponentProps<"button"> {
 }
 
 export const Draggable = forwardRef<HTMLButtonElement, DraggableProps>(
-  ({ id, isDropped = false, widthPx, className, children, style, ...props }, ref) => {
+  (
+    { id, isDropped = false, widthPx, className, children, style, ...props },
+    ref
+  ) => {
     const { attributes, listeners, setNodeRef, transform, isDragging } =
       useDraggable({
         id,
@@ -26,13 +29,14 @@ export const Draggable = forwardRef<HTMLButtonElement, DraggableProps>(
       ...style,
       ...transformStyle,
       width: widthPx ? `${widthPx}px` : undefined,
+      touchAction: "none",
     }
 
     return (
       <button
         ref={composeRefs<HTMLButtonElement>(setNodeRef, ref)}
         className={cn(
-          "px-1 bg-slate-200 border border-slate-300 rounded-sm w-fit cursor-grab text-xs break-all sm:text-base",
+          "px-1 bg-slate-200 border border-slate-300 rounded-sm w-fit cursor-grab text-xs break-all select-none sm:text-base",
           { "border-none px-0 w-full bg-transparent": isDropped },
           { "cursor-grabbing px-1 border-solid z-30": isDragging },
           className

@@ -175,7 +175,7 @@ export const ImageDragAndDrop = ({
               ))}
           </ul>
         )}
-        <div className="relative">
+        <div className="relative" style={{ touchAction: "none" }}>
           <Image
             ref={imageRef}
             src={`/uploads/${question.imagePath}`}

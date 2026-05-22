@@ -341,7 +341,12 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
         state.showAnswer = true
         state.hasAnswered = true
         state.answeredContent = content
-        // Note: isCorrect is not set for SENTENCE_FILL as it requires server-side validation
+        state.isCorrect = currentQuestion.options
+          .filter((opt) => opt.correct)
+          .some(
+            (opt) =>
+              opt.content.trim().toLowerCase() === content.trim().toLowerCase()
+          )
 
         return newQuestionStates
       })
@@ -349,7 +354,7 @@ export const QuizGame: FC<QuizGameProps> = ({ questions, gameSession }) => {
         content,
       })
     },
-    [syncAnswer, currentQuestionIndex, showAnswer]
+    [syncAnswer, currentQuestionIndex, showAnswer, currentQuestion]
   )
 
   const handleSentenceSelectAnswer = useCallback(
